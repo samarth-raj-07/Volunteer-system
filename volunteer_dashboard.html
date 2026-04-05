@@ -405,96 +405,221 @@ tr:hover td{background:#fafcfa;}
 <div class="toast" id="toast"></div>
 
 <script>
-// 🔥 FIXED CONFIG
 const BASE_URL = "https://volunteer-system-production-1fb3.up.railway.app";
 const API = `${BASE_URL}/api`;
 
-let USER=null;
-let currentRatings={};
+let USER = null;
+let currentRatings = {};
 
-// INIT
+/* ================= SAFE RESPONSE ================= */
+async function handleResponse(res){
+  let data;
+  try{
+    data = await res.json();
+  }catch{
+    throw new Error("Invalid server response");
+  }
+  if(!res.ok){
+    throw new Error(data.message || "Server error");
+  }
+  return data;
+}
+
+/* ================= INIT ================= */
 (function(){
-  const raw=localStorage.getItem('user');
-  const role=localStorage.getItem('role');
-  if(!raw||role!=='volunteer'){window.location.href='login.html';return;}
-  USER=JSON.parse(raw);
-  document.getElementById('user-name').textContent=USER.name;
-  document.getElementById('user-avatar').textContent=USER.name.charAt(0).toUpperCase();
-  loadStats();loadRecommendations();loadCausesAndSkills();
+  const raw = localStorage.getItem('user');
+  const role = localStorage.getItem('role');
+
+  if(!raw || role !== 'volunteer'){
+    window.location.href='login.html';
+    return;
+  }
+
+  USER = JSON.parse(raw);
+
+  document.getElementById('user-name').textContent = USER.name;
+  document.getElementById('user-avatar').textContent = USER.name.charAt(0).toUpperCase();
+
+  loadStats();
+  loadRecommendations();
+  loadCausesAndSkills();
 })();
 
+/* ================= UI ================= */
 function showSection(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+
   document.getElementById(`section-${name}`).classList.add('active');
-  const items=document.querySelectorAll('.nav-item');
-  items.forEach(i=>{if(i.getAttribute('onclick')&&i.getAttribute('onclick').includes(name))i.classList.add('active');});
-  const titles={recommendations:'Recommendations',browse:'Browse Opportunities',applications:'My Applications',participation:'Participation History',feedback:'Give Feedback',profile:'My Profile'};
-  document.getElementById('topbar-title').textContent=titles[name]||name;
-  if(name==='applications')loadApplications();
-  if(name==='participation')loadParticipation();
-  if(name==='feedback')loadFeedback();
-  if(name==='profile')loadProfile();
+
+  document.querySelectorAll('.nav-item').forEach(i=>{
+    if(i.getAttribute('onclick') && i.getAttribute('onclick').includes(name)){
+      i.classList.add('active');
+    }
+  });
+
+  const titles={
+    recommendations:'Recommendations',
+    browse:'Browse Opportunities',
+    applications:'My Applications',
+    participation:'Participation History',
+    feedback:'Give Feedback',
+    profile:'My Profile'
+  };
+
+  document.getElementById('topbar-title').textContent = titles[name] || name;
+
+  if(name==='applications') loadApplications();
+  if(name==='participation') loadParticipation();
+  if(name==='feedback') loadFeedback();
+  if(name==='profile') loadProfile();
 }
 
 function toast(msg,type='success'){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.className=`toast show ${type}`;
+  t.textContent=msg;
+  t.className=`toast show ${type}`;
   setTimeout(()=>t.className='toast',2800);
 }
 
-// 🔥 ALL API CALLS NOW WORK
+/* ================= API ================= */
+
 async function loadStats(){
   try{
-    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/stats`);
-    const s=await r.json();
+    const res = await fetch(`${API}/volunteer/${USER.volunteer_id}/stats`);
+    const s = await handleResponse(res);
+
     document.getElementById('rec-stats').innerHTML=`
       <div class="stat-card green"><div class="stat-label">Total Hours</div><div class="stat-value">${s.total_hours||0}</div></div>
       <div class="stat-card"><div class="stat-label">Participations</div><div class="stat-value">${s.total_participations||0}</div></div>
       <div class="stat-card orange"><div class="stat-label">Applications</div><div class="stat-value">${s.total_applications||0}</div></div>
       <div class="stat-card blue"><div class="stat-label">City</div><div class="stat-value">${USER.city||'—'}</div></div>
     `;
-  }catch(e){}
+  }catch(err){
+    console.error(err);
+    toast(err.message,'error');
+  }
 }
 
 async function loadRecommendations(){
   try{
-    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/recommendations`);
-    const opps=await r.json();
+    const res = await fetch(`${API}/volunteer/${USER.volunteer_id}/recommendations`);
+    const opps = await handleResponse(res);
+
     renderCards('rec-cards',opps,true);
-  }catch{
-    document.getElementById('rec-cards').innerHTML='<p>Server error</p>';
+  }catch(err){
+    document.getElementById('rec-cards').innerHTML = `<p>${err.message}</p>`;
   }
 }
 
 async function loadBrowse(){
   try{
-    const r=await fetch(`${API}/opportunities`);
-    const opps=await r.json();
+    const res = await fetch(`${API}/opportunities`);
+    const opps = await handleResponse(res);
+
     renderCards('browse-cards',opps,false);
-  }catch{}
+  }catch(err){
+    toast(err.message,'error');
+  }
 }
 
 async function applyFor(oppId,btn){
-  btn.disabled=true;
+  btn.disabled = true;
+
   try{
-    const r=await fetch(`${API}/apply`,{
+    const res = await fetch(`${API}/apply`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({volunteer_id:USER.volunteer_id,opp_id:oppId})
+      body:JSON.stringify({
+        volunteer_id: USER.volunteer_id,
+        opp_id: oppId
+      })
     });
-    const d=await r.json();
-    if(d.success){
+
+    const data = await handleResponse(res);
+
+    if(data.success){
       btn.textContent='✓ Applied';
       toast('Applied successfully');
     }
-  }catch{}
+
+  }catch(err){
+    btn.disabled = false;
+    toast(err.message,'error');
+  }
 }
+
+/* ================= APPLICATION ================= */
+
+async function loadApplications(){
+  try{
+    const res = await fetch(`${API}/volunteer/${USER.volunteer_id}/applications`);
+    const apps = await handleResponse(res);
+
+    const tbody = document.getElementById('apps-tbody');
+
+    if(!apps.length){
+      tbody.innerHTML = `<tr><td colspan="5">No applications</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = apps.map(a=>`
+      <tr>
+        <td>${a.title}</td>
+        <td>${a.org_name}</td>
+        <td>${a.location}</td>
+        <td>${a.applied_date}</td>
+        <td>${a.status}</td>
+      </tr>
+    `).join('');
+
+  }catch(err){
+    toast(err.message,'error');
+  }
+}
+
+/* ================= PARTICIPATION ================= */
+
+async function loadParticipation(){
+  try{
+    const res = await fetch(`${API}/volunteer/${USER.volunteer_id}/participation`);
+    const parts = await handleResponse(res);
+
+    const list = document.getElementById('parts-list');
+
+    if(!parts.length){
+      list.innerHTML = `<p>No participation yet</p>`;
+      return;
+    }
+
+    list.innerHTML = parts.map(p=>`
+      <div class="part-card">
+        <div class="part-info">
+          <div class="part-title">${p.title}</div>
+          <div class="part-org">${p.org_name}</div>
+          <div class="part-date">${p.date}</div>
+        </div>
+        <div class="hours-badge">${p.hours}<small>hrs</small></div>
+      </div>
+    `).join('');
+
+  }catch(err){
+    toast(err.message,'error');
+  }
+}
+
+/* ================= PROFILE ================= */
+
+function loadProfile(){
+  document.getElementById('p-name').textContent = USER.name;
+  document.getElementById('p-avatar').textContent = USER.name.charAt(0);
+  document.getElementById('p-meta').textContent = USER.email;
+}
+
+/* ================= LOGOUT ================= */
 
 function logout(){
   localStorage.clear();
   window.location.href='login.html';
 }
 </script>
-</body>
-</html>
