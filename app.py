@@ -4,50 +4,52 @@ import mysql.connector
 import hashlib
 import os
 from datetime import date
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "volunteer_secret_key_2025")
 CORS(app, supports_credentials=True)
 
-
-# ─── DB CONNECTION (SAFE VERSION) ────────────────────────────
-import os
-import mysql.connector
-from urllib.parse import urlparse
-
+# ================= DB CONNECTION =================
 def get_db_connection():
     try:
-        db_url = os.getenv("MYSQL_PUBLIC_URL")   # 👈 THIS LINE IS KEY
+        db_url = os.getenv("MYSQL_PUBLIC_URL")
+
+        if not db_url:
+            raise Exception("MYSQL_PUBLIC_URL not found")
 
         url = urlparse(db_url)
 
-        return mysql.connector.connect(
+        conn = mysql.connector.connect(
             host=url.hostname,
             user=url.username,
             password=url.password,
             database=url.path.replace("/", ""),
             port=url.port
         )
+
+        return conn
+
     except Exception as e:
         print("DB ERROR:", e)
         return None
+
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-# ─── ROOT ROUTE ───────────────────────────────────────────────
+# ================= ROOT =================
 @app.route('/')
 def home():
     return "Volunteer System API is running 🚀"
 
 
-# ─── AUTH ROUTES ──────────────────────────────────────────────
-
+# ================= REGISTER VOLUNTEER =================
 @app.route('/api/register/volunteer', methods=['POST'])
 def register_volunteer():
     data = request.json
-    db = get_db()
+    db = get_db_connection()
 
     if not db:
         return jsonify({'success': False, 'message': 'DB connection failed'}), 500
@@ -79,10 +81,11 @@ def register_volunteer():
         db.close()
 
 
+# ================= REGISTER ORG =================
 @app.route('/api/register/organization', methods=['POST'])
 def register_organization():
     data = request.json
-    db = get_db()
+    db = get_db_connection()
 
     if not db:
         return jsonify({'success': False, 'message': 'DB connection failed'}), 500
@@ -106,10 +109,11 @@ def register_organization():
         db.close()
 
 
+# ================= LOGIN VOLUNTEER =================
 @app.route('/api/login/volunteer', methods=['POST'])
 def login_volunteer():
     data = request.json
-    db = get_db()
+    db = get_db_connection()
 
     if not db:
         return jsonify({'success': False, 'message': 'DB connection failed'}), 500
@@ -134,10 +138,11 @@ def login_volunteer():
     return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
 
 
+# ================= LOGIN ORG =================
 @app.route('/api/login/organization', methods=['POST'])
 def login_organization():
     data = request.json
-    db = get_db()
+    db = get_db_connection()
 
     if not db:
         return jsonify({'success': False, 'message': 'DB connection failed'}), 500
@@ -162,17 +167,10 @@ def login_organization():
     return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
 
 
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    session.clear()
-    return jsonify({'success': True})
-
-
-# ─── OPPORTUNITIES ───────────────────────────────────────────
-
+# ================= GET OPPORTUNITIES =================
 @app.route('/api/opportunities', methods=['GET'])
 def get_opportunities():
-    db = get_db()
+    db = get_db_connection()
 
     if not db:
         return jsonify({'success': False, 'message': 'DB connection failed'}), 500
@@ -196,7 +194,7 @@ def get_opportunities():
     return jsonify(data)
 
 
-# ─── RUN APP ────────────────────────────────────────────────
+# ================= RUN =================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
 
