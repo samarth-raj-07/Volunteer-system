@@ -11,21 +11,25 @@ CORS(app, supports_credentials=True)
 
 
 # ─── DB CONNECTION (SAFE VERSION) ────────────────────────────
-def get_db():
-    try:
-        print("HOST:", os.environ.get("MYSQLHOST"))
-        print("USER:", os.environ.get("MYSQLUSER"))
+import os
+import mysql.connector
+from urllib.parse import urlparse
 
-        db = mysql.connector.connect(
-            host=os.environ.get("MYSQLHOST"),
-            user=os.environ.get("MYSQLUSER"),
-            password=os.environ.get("MYSQLPASSWORD"),
-            database=os.environ.get("MYSQLDATABASE"),
-            port=int(os.environ.get("MYSQLPORT", 3306))
+def get_db_connection():
+    try:
+        db_url = os.getenv("MYSQL_PUBLIC_URL")   # 👈 THIS LINE IS KEY
+
+        url = urlparse(db_url)
+
+        return mysql.connector.connect(
+            host=url.hostname,
+            user=url.username,
+            password=url.password,
+            database=url.path.replace("/", ""),
+            port=url.port
         )
-        return db
     except Exception as e:
-        print("❌ DB ERROR:", e)
+        print("DB ERROR:", e)
         return None
 
 def hash_password(password):
