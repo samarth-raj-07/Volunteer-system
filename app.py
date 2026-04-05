@@ -12,7 +12,6 @@ CORS(app, supports_credentials=True)
 
 # ================= DB CONNECTION =================
 def get_db_connection():
-def get_db_connection():
     try:
         conn = mysql.connector.connect(
             host=os.getenv("MYSQLHOST"),
