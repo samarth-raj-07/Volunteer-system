@@ -11,15 +11,27 @@ app.secret_key = os.environ.get("SECRET_KEY", "volunteer_secret_key_2025")
 CORS(app, supports_credentials=True)
 
 # ================= DB CONNECTION =================
+from urllib.parse import urlparse
+import os
+import mysql.connector
+
 def get_db_connection():
     try:
+        db_url = os.getenv("MYSQL_PUBLIC_URL")
+
+        if not db_url:
+            raise Exception("MYSQL_PUBLIC_URL not found")
+
+        url = urlparse(db_url)
+
         conn = mysql.connector.connect(
-            host=os.getenv("MYSQLHOST"),
-            user=os.getenv("MYSQLUSER"),
-            password=os.getenv("MYSQLPASSWORD"),
-            database=os.getenv("MYSQLDATABASE"),
-            port=int(os.getenv("MYSQLPORT"))
+            host=url.hostname,
+            user=url.username,
+            password=url.password,
+            database=url.path.replace("/", ""),
+            port=url.port
         )
+
         return conn
 
     except Exception as e:
