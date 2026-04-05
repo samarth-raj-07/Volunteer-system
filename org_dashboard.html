@@ -338,32 +338,70 @@ tr:hover td{background:#f9fafc;}
 <div class="toast" id="toast"></div>
 
 <script>
-//const API='http://localhost:5000/api';
 const BASE_URL = "https://volunteer-system-production-1fb3.up.railway.app";
 const API = `${BASE_URL}/api`;
-  
+
 let ORG=null;
 let allApps=[];
 
+/* ================= SAFE RESPONSE HANDLER ================= */
+async function handleResponse(res){
+  let data;
+  try{
+    data = await res.json();
+  }catch{
+    throw new Error("Invalid server response");
+  }
+  if(!res.ok){
+    throw new Error(data.message || "Server error");
+  }
+  return data;
+}
+
+/* ================= INIT ================= */
 (function(){
   const raw=localStorage.getItem('user');
   const role=localStorage.getItem('role');
-  if(!raw||role!=='organization'){window.location.href='login.html';return;}
+
+  if(!raw||role!=='organization'){
+    window.location.href='login.html';
+    return;
+  }
+
   ORG=JSON.parse(raw);
+
   document.getElementById('user-name').textContent=ORG.org_name;
   document.getElementById('user-avatar').textContent=ORG.org_name.charAt(0).toUpperCase();
-  loadStats();loadRecentApps();loadCauses();
+
+  loadStats();
+  loadRecentApps();
+  loadCauses();
 })();
 
+/* ================= UI ================= */
 function showSection(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+
   document.getElementById(`section-${name}`).classList.add('active');
+
   document.querySelectorAll('.nav-item').forEach(i=>{
-    if(i.getAttribute('onclick')&&i.getAttribute('onclick').includes(name))i.classList.add('active');
+    if(i.getAttribute('onclick') && i.getAttribute('onclick').includes(name)){
+      i.classList.add('active');
+    }
   });
-  const titles={overview:'Dashboard',post:'Post Opportunity',posted:'My Opportunities',applications:'Manage Applications',feedback:'Feedback Received',profile:'Organization Profile'};
+
+  const titles={
+    overview:'Dashboard',
+    post:'Post Opportunity',
+    posted:'My Opportunities',
+    applications:'Manage Applications',
+    feedback:'Feedback Received',
+    profile:'Organization Profile'
+  };
+
   document.getElementById('topbar-title').textContent=titles[name]||name;
+
   if(name==='posted')loadPosted();
   if(name==='applications')loadApplications();
   if(name==='feedback')loadFeedback();
@@ -372,218 +410,176 @@ function showSection(name){
 
 function toast(msg,type='success'){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.className=`toast show ${type}`;
+  t.textContent=msg;
+  t.className=`toast show ${type}`;
   setTimeout(()=>t.className='toast',2800);
 }
 
+/* ================= API CALLS ================= */
+
 async function loadStats(){
   try{
-    const r=await fetch(`${API}/organization/${ORG.org_id}/stats`,{credentials:'include'});
-    const s=await r.json();
+    const res = await fetch(`${API}/organization/${ORG.org_id}/stats`);
+    const s = await handleResponse(res);
+
     document.getElementById('org-stats-strip').innerHTML=`
-      <div class="stat-card blue"><div class="stat-label">Opportunities</div><div class="stat-value">${s.total_opportunities||0}</div><div class="stat-sub">Posted by you</div></div>
-      <div class="stat-card green"><div class="stat-label">Total Volunteers</div><div class="stat-value">${s.total_volunteers||0}</div><div class="stat-sub">Accepted volunteers</div></div>
-      <div class="stat-card orange"><div class="stat-label">Hours Contributed</div><div class="stat-value">${s.total_hours||0}</div><div class="stat-sub">By all volunteers</div></div>
-      <div class="stat-card purple"><div class="stat-label">Avg Rating</div><div class="stat-value">${s.avg_rating||'—'}</div><div class="stat-sub">From volunteer reviews</div></div>
+      <div class="stat-card blue"><div class="stat-label">Opportunities</div><div class="stat-value">${s.total_opportunities||0}</div></div>
+      <div class="stat-card green"><div class="stat-label">Volunteers</div><div class="stat-value">${s.total_volunteers||0}</div></div>
+      <div class="stat-card orange"><div class="stat-label">Hours</div><div class="stat-value">${s.total_hours||0}</div></div>
+      <div class="stat-card purple"><div class="stat-label">Rating</div><div class="stat-value">${s.avg_rating||'—'}</div></div>
     `;
-  }catch(e){}
+  }catch(err){
+    console.error(err);
+  }
 }
 
 async function loadCauses(){
   try{
-    const r=await fetch(`${API}/causes`);
-    const causes=await r.json();
+    const res = await fetch(`${API}/causes`);
+    const causes = await handleResponse(res);
+
     const cs=document.getElementById('opp-cause');
-    causes.forEach(c=>{const o=document.createElement('option');o.value=c.cause_id;o.textContent=c.cause_name;cs.appendChild(o);});
-  }catch(e){}
+    causes.forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c.cause_id;
+      o.textContent=c.cause_name;
+      cs.appendChild(o);
+    });
+  }catch(err){
+    console.error(err);
+  }
 }
 
 async function loadRecentApps(){
   try{
-    const r=await fetch(`${API}/organization/${ORG.org_id}/applications`,{credentials:'include'});
-    const apps=await r.json();
+    const res = await fetch(`${API}/organization/${ORG.org_id}/applications`);
+    const apps = await handleResponse(res);
+
     const tbody=document.getElementById('recent-apps-tbody');
-    const recent=apps.slice(0,8);
-    if(!recent.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="es-icon">👥</div><p>No applications yet.</p></div></td></tr>';return;}
-    tbody.innerHTML=recent.map(a=>renderAppRow(a,true)).join('');
-  }catch(e){}
+
+    if(!apps.length){
+      tbody.innerHTML='<tr><td colspan="5">No applications</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = apps.map(a=>`
+      <tr>
+        <td>${a.volunteer_name}</td>
+        <td>${a.title}</td>
+        <td>${a.applied_date}</td>
+        <td>${a.status}</td>
+        <td>-</td>
+      </tr>
+    `).join('');
+
+  }catch(err){
+    console.error(err);
+  }
 }
 
+/* ================= POST ================= */
+
 async function postOpportunity(){
-  const title=document.getElementById('opp-title').value.trim();
-  if(!title){showMsg('post-msg','Please enter a title.','error');return;}
+  const title=document.getElementById('opp-title').value;
+
+  if(!title){
+    showMsg('post-msg','Enter title','error');
+    return;
+  }
+
   const payload={
     org_id:ORG.org_id,
     title,
-    description:document.getElementById('opp-desc').value,
-    location:document.getElementById('opp-location').value,
-    mode:document.getElementById('opp-mode').value,
-    category:document.getElementById('opp-category').value,
-    cause_id:document.getElementById('opp-cause').value||null,
-    start_date:document.getElementById('opp-start').value||null,
-    end_date:document.getElementById('opp-end').value||null,
-    hours_required:parseInt(document.getElementById('opp-hours').value)||null,
-    required_skill:document.getElementById('opp-skill').value,
-    minimum_level:document.getElementById('opp-level').value,
-    volunteers_needed:parseInt(document.getElementById('opp-needed').value)||10
+    description:document.getElementById('opp-desc').value
   };
+
   try{
-    const r=await fetch(`${API}/opportunities`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      credentials:'include',body:JSON.stringify(payload)
+    const res = await fetch(`${API}/opportunities`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
     });
-    const d=await r.json();
-    if(d.success){
-      showMsg('post-msg','Opportunity published successfully!','success');
-      toast('Opportunity posted!','success');
-      document.querySelectorAll('#section-post input, #section-post select, #section-post textarea').forEach(el=>{
-        if(el.tagName==='SELECT'){el.selectedIndex=0;}else{el.value='';}
-      });
+
+    const data = await handleResponse(res);
+
+    if(data.success){
+      showMsg('post-msg','Posted!','success');
+      toast("Opportunity posted!");
       loadStats();
-    }else{showMsg('post-msg',d.message||'Failed to post.','error');}
-  }catch{showMsg('post-msg','Server error.','error');}
+    }
+
+  }catch(err){
+    showMsg('post-msg',err.message,'error');
+  }
 }
 
-function showMsg(id,text,type){
-  const el=document.getElementById(id);el.textContent=text;el.className=`msg ${type}`;
-  setTimeout(()=>el.className='msg',3500);
-}
-
-async function loadPosted(){
-  try{
-    const r=await fetch(`${API}/opportunities?org=${ORG.org_id}`,{credentials:'include'});
-    const opps=await r.json();
-    // Filter to only org's
-    const r2=await fetch(`${API}/organization/${ORG.org_id}/applications`,{credentials:'include'});
-    const apps=await r2.json();
-    const countByOpp={};
-    apps.forEach(a=>{
-      if(!countByOpp[a.opp_id])countByOpp[a.opp_id]={total:0,accepted:0,pending:0};
-      countByOpp[a.opp_id].total++;
-      if(a.status==='Accepted')countByOpp[a.opp_id].accepted++;
-      if(a.status==='Pending')countByOpp[a.opp_id].pending++;
-    });
-    const myOpps=opps.filter(o=>o.org_name===ORG.org_name);
-    const list=document.getElementById('posted-list');
-    if(!myOpps.length){list.innerHTML='<div class="empty-state"><div class="es-icon">📋</div><p>No opportunities posted yet. Click "Post Opportunity" to get started.</p></div>';return;}
-    list.innerHTML=myOpps.map(o=>{
-      const counts=countByOpp[o.opp_id]||{total:0,accepted:0,pending:0};
-      const modeTag=o.mode==='Online'?'tag-blue':o.mode==='Hybrid'?'tag-purple':'tag-orange';
-      return `<div class="posted-card">
-        <div class="posted-info">
-          <div class="posted-title">${o.title} <span class="tag ${modeTag}">${o.mode||'—'}</span></div>
-          <div class="posted-meta">
-            ${o.location?`<span>📍 ${o.location}</span>`:''}
-            ${o.hours_required?`<span>⏱ ${o.hours_required}h</span>`:''}
-            ${o.cause_name?`<span>🏷 ${o.cause_name}</span>`:''}
-            ${o.start_date?`<span>📅 ${o.start_date}</span>`:''}
-          </div>
-        </div>
-        <div class="posted-stats">
-          <div class="posted-stat-pill"><div class="psp-val">${counts.total}</div><div class="psp-label">Applied</div></div>
-          <div class="posted-stat-pill"><div class="psp-val" style="color:var(--green)">${counts.accepted}</div><div class="psp-label">Accepted</div></div>
-          <div class="posted-stat-pill"><div class="psp-val" style="color:var(--orange)">${counts.pending}</div><div class="psp-label">Pending</div></div>
-        </div>
-      </div>`;
-    }).join('');
-  }catch(e){document.getElementById('posted-list').innerHTML='<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not load. Is the backend running?</p></div>';}
-}
+/* ================= APPLICATION ================= */
 
 async function loadApplications(){
   try{
-    const r=await fetch(`${API}/organization/${ORG.org_id}/applications`,{credentials:'include'});
-    allApps=await r.json();
-    const statusFilter=document.getElementById('app-status-filter').value;
-    const apps=statusFilter?allApps.filter(a=>a.status===statusFilter):allApps;
+    const res = await fetch(`${API}/organization/${ORG.org_id}/applications`);
+    allApps = await handleResponse(res);
+
     const tbody=document.getElementById('apps-tbody');
-    if(!apps.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="es-icon">👥</div><p>No applications match this filter.</p></div></td></tr>';return;}
-    tbody.innerHTML=apps.map(a=>renderAppRow(a,false)).join('');
-  }catch(e){}
-}
 
-function renderAppRow(a,compact){
-  const cls=a.status==='Accepted'?'accepted':a.status==='Rejected'?'rejected':'pending';
-  const actions=a.status==='Pending'?
-    `<div class="action-btns">
-      <button class="accept-btn" onclick="updateStatus(${a.application_id},'Accepted',this)">✓ Accept</button>
-      <button class="reject-btn" onclick="updateStatus(${a.application_id},'Rejected',this)">✗ Reject</button>
-     </div>`:
-    `<span style="font-size:12px;color:var(--mid)">—</span>`;
-  if(compact){
-    return `<tr>
-      <td><strong>${a.volunteer_name}</strong></td>
-      <td>${a.title}</td>
-      <td>${a.applied_date}</td>
-      <td><span class="status-pill status-${cls}">${a.status}</span></td>
-      <td>${actions}</td>
-    </tr>`;
+    tbody.innerHTML = allApps.map(a=>`
+      <tr>
+        <td>${a.volunteer_name}</td>
+        <td>${a.email}</td>
+        <td>${a.title}</td>
+        <td>${a.applied_date}</td>
+        <td>${a.status}</td>
+        <td>
+          <button onclick="updateStatus(${a.application_id},'Accepted')">Accept</button>
+          <button onclick="updateStatus(${a.application_id},'Rejected')">Reject</button>
+        </td>
+      </tr>
+    `).join('');
+
+  }catch(err){
+    console.error(err);
   }
-  return `<tr>
-    <td><strong>${a.volunteer_name}</strong></td>
-    <td>${a.email||'—'}<br/><span style="font-size:11px;color:var(--mid)">${a.phone||''}</span></td>
-    <td>${a.title}</td>
-    <td>${a.applied_date}</td>
-    <td><span class="status-pill status-${cls}">${a.status}</span></td>
-    <td>${actions}</td>
-  </tr>`;
 }
 
-async function updateStatus(appId,status,btn){
-  btn.disabled=true;
+async function updateStatus(id,status){
   try{
-    const r=await fetch(`${API}/application/${appId}/status`,{
-      method:'PUT',headers:{'Content-Type':'application/json'},
-      credentials:'include',body:JSON.stringify({status})
+    const res = await fetch(`${API}/application/${id}/status`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({status})
     });
-    const d=await r.json();
-    if(d.success){
-      toast(`Application ${status.toLowerCase()}!`,status==='Accepted'?'success':'error');
-      loadApplications();loadStats();loadRecentApps();
+
+    const data = await handleResponse(res);
+
+    if(data.success){
+      toast("Updated!");
+      loadApplications();
     }
-  }catch{toast('Server error.','error');btn.disabled=false;}
+
+  }catch(err){
+    toast(err.message,'error');
+  }
 }
 
-async function loadFeedback(){
-  try{
-    // Get all org's opportunities, then fetch feedback for each
-    const r=await fetch(`${API}/opportunities`,{credentials:'include'});
-    const opps=await r.json();
-    const myOpps=opps.filter(o=>o.org_name===ORG.org_name);
-    const list=document.getElementById('fb-list');
-    if(!myOpps.length){list.innerHTML='<div class="empty-state"><div class="es-icon">⭐</div><p>No feedback yet.</p></div>';return;}
-    let html='';
-    for(const opp of myOpps){
-      const fr=await fetch(`${API}/opportunity/${opp.opp_id}/feedback`);
-      const feedbacks=await fr.json();
-      feedbacks.forEach(f=>{
-        const stars='★'.repeat(f.rating)+'☆'.repeat(5-f.rating);
-        html+=`<div class="fb-item">
-          <div class="fb-header">
-            <div>
-              <div class="fb-vol">${f.name}</div>
-              <div class="fb-opp">on: ${opp.title}</div>
-            </div>
-            <div class="fb-stars">${stars}</div>
-          </div>
-          ${f.comment?`<div class="fb-comment">"${f.comment}"</div>`:''}
-          <div class="fb-date">${f.feedback_date}</div>
-        </div>`;
-      });
-    }
-    list.innerHTML=html||'<div class="empty-state"><div class="es-icon">⭐</div><p>No feedback received yet.</p></div>';
-  }catch(e){}
-}
+/* ================= PROFILE ================= */
 
-async function loadProfile(){
-  const card=document.getElementById('org-profile-card');
-  card.innerHTML=`
-    <div class="org-avatar">${ORG.org_name.charAt(0).toUpperCase()}</div>
-    <div class="org-name">${ORG.org_name}</div>
-    <div class="org-detail">✉ ${ORG.email}</div>
+function loadProfile(){
+  document.getElementById('org-profile-card').innerHTML=`
+    <h3>${ORG.org_name}</h3>
+    <p>${ORG.email}</p>
   `;
 }
 
-function logout(){localStorage.clear();window.location.href='login.html';}
+/* ================= UTIL ================= */
+
+function showMsg(id,text,type){
+  const el=document.getElementById(id);
+  el.textContent=text;
+  el.className=`msg ${type}`;
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href='login.html';
+}
 </script>
-</body>
-</html>
