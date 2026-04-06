@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Volunteer Dashboard — VolunteerConnect</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --primary:#1a6b3c;--light:#e8f5ee;--accent:#2ecc71;
+  --orange:#e67e22;--red:#e74c3c;--blue:#3498db;
+  --dark:#111;--dark2:#1c1c1c;--mid:#666;--border:#ebebeb;--bg:#f6f7f5;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);}
+
+/* SIDEBAR */
+.layout{display:flex;min-height:100vh;}
+.sidebar{
+  width:240px;background:var(--dark);padding:0;
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;
+}
+.sidebar-logo{
+  padding:22px 20px;font-family:'Fraunces',serif;
+  font-size:18px;color:white;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),#3d8bcd);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.sidebar-logo span{color:var(--accent);}
+.nav-section{padding:20px 12px 8px;font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,0.25);text-transform:uppercase;}
+.nav-item{
+  padding:10px 16px;display:flex;align-items:center;gap:11px;
+  color:rgba(255,255,255,0.5);cursor:pointer;font-size:13.5px;font-weight:500;
+  border-left:3px solid transparent;transition:all 0.18s;border-radius:0 8px 8px 0;margin:0 8px 1px 0;
+}
+.nav-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:white;background:rgba(46,204,113,0.12);border-left-color:var(--accent);}
+.nav-icon{font-size:15px;width:20px;text-align:center;}
+.sidebar-bottom{margin-top:auto;padding:16px;}
+.logout-btn{
+  width:100%;padding:9px;background:rgba(231,76,60,0.12);
+  border:1px solid rgba(231,76,60,0.25);color:#e74c3c;
+  border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  transition:all 0.2s;
+}
+.logout-btn:hover{background:rgba(231,76,60,0.2);}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;}
+.topbar{
+  background:white;padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-family:'Fraunces',serif;font-size:18px;}
+.user-chip{
+  display:flex;align-items:center;gap:10px;
+  background:var(--light);padding:6px 14px;border-radius:20px;
+}
+.user-avatar{
+  width:30px;height:30px;background:var(--primary);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:700;font-size:12px;
+}
+.user-name{font-size:13px;font-weight:600;color:var(--primary);}
+
+/* SECTIONS */
+.section{display:none;padding:24px 28px;}
+.section.active{display:block;}
+
+/* STATS */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:white;border-radius:12px;padding:18px;border:1px solid var(--border);}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--mid);margin-bottom:8px;}
+.stat-value{font-family:'Fraunces',serif;font-size:30px;line-height:1;}
+.stat-sub{font-size:11px;color:var(--mid);margin-top:4px;}
+.stat-card.green .stat-value{color:var(--primary);}
+.stat-card.orange .stat-value{color:var(--orange);}
+.stat-card.blue .stat-value{color:var(--blue);}
+
+/* SEC HEADER */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.sec-title{font-family:'Fraunces',serif;font-size:20px;}
+.sec-sub{font-size:13px;color:var(--mid);margin-top:3px;}
+.sec-badge{
+  padding:6px 14px;background:var(--light);color:var(--primary);
+  border-radius:20px;font-size:12px;font-weight:600;
+}
+
+/* FILTER BAR */
+.filter-bar{
+  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;
+  padding:14px;background:white;border-radius:10px;border:1px solid var(--border);
+}
+.filter-bar input,.filter-bar select{
+  padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'DM Sans',sans-serif;font-size:13px;outline:none;flex:1;min-width:110px;
+}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--primary);}
+.filter-btn{
+  padding:8px 18px;background:var(--primary);color:white;border:none;
+  border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;
+}
+.filter-btn:hover{background:#145c33;}
+.clear-btn{
+  padding:8px 14px;background:transparent;color:var(--mid);border:1.5px solid var(--border);
+  border-radius:7px;cursor:pointer;font-size:13px;
+}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.opp-card{
+  background:white;border-radius:12px;padding:18px;
+  border:1px solid var(--border);transition:box-shadow 0.2s,transform 0.2s;
+}
+.opp-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.07);transform:translateY(-2px);}
+.opp-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.opp-title{font-weight:600;font-size:14.5px;line-height:1.35;}
+.opp-org{font-size:11.5px;color:var(--mid);margin-top:3px;}
+.tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;}
+.tag-green{background:var(--light);color:var(--primary);}
+.tag-blue{background:#e8f4fd;color:var(--blue);}
+.tag-orange{background:#fef5e7;color:var(--orange);}
+.tag-purple{background:#f3e5f5;color:#8e44ad;}
+.tag-red{background:#ffebee;color:var(--red);}
+.opp-meta{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+.meta-item{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--mid);}
+.opp-desc{font-size:12px;color:var(--mid);line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.opp-footer{display:flex;align-items:center;justify-content:space-between;}
+.apply-btn{
+  padding:7px 16px;background:var(--primary);color:white;
+  border:none;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:600;
+  transition:background 0.2s;
+}
+.apply-btn:hover{background:#145c33;}
+.apply-btn:disabled{background:#bbb;cursor:not-allowed;}
+.match-badge{display:flex;align-items:center;gap:4px;font-size:10px;background:var(--light);color:var(--primary);padding:3px 8px;border-radius:20px;font-weight:700;}
+
+/* TABLE */
+.table-wrap{background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{padding:11px 14px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--mid);background:#f9f9f7;border-bottom:1px solid var(--border);}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafcfa;}
+.status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.2px;}
+.status-pending{background:#fff3e0;color:#e65100;}
+.status-accepted{background:var(--light);color:var(--primary);}
+.status-rejected{background:#ffebee;color:var(--red);}
+.empty-state{padding:48px;text-align:center;color:var(--mid);}
+.empty-state .es-icon{font-size:40px;margin-bottom:12px;}
+.empty-state p{font-size:14px;}
+
+/* FEEDBACK */
+.feedback-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.feedback-card{background:white;border-radius:12px;padding:20px;border:1px solid var(--border);}
+.fb-opp-title{font-weight:600;font-size:14px;margin-bottom:4px;}
+.fb-org{font-size:12px;color:var(--mid);margin-bottom:12px;}
+.stars{display:flex;gap:4px;margin:8px 0;}
+.star{font-size:22px;cursor:pointer;transition:transform 0.1s;filter:grayscale(1);opacity:0.4;}
+.star:hover,.star.active{filter:none;opacity:1;transform:scale(1.15);}
+.feedback-card textarea{
+  width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:vertical;min-height:70px;
+}
+.feedback-card textarea:focus{border-color:var(--primary);}
+.fb-submit{
+  margin-top:8px;padding:8px 18px;background:var(--primary);
+  color:white;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;
+}
+.fb-done{color:var(--primary);font-size:13px;font-weight:600;margin-top:8px;}
+
+/* PROFILE */
+.profile-wrap{display:grid;grid-template-columns:300px 1fr;gap:18px;}
+.profile-card{background:white;border-radius:12px;padding:22px;border:1px solid var(--border);}
+.profile-avatar{
+  width:68px;height:68px;background:var(--primary);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;color:white;font-weight:700;margin-bottom:12px;
+}
+.profile-name{font-family:'Fraunces',serif;font-size:20px;margin-bottom:4px;}
+.profile-meta{font-size:12.5px;color:var(--mid);margin-bottom:16px;}
+.profile-stat{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;
+}
+.profile-stat:last-child{border-bottom:none;}
+.profile-stat-val{font-weight:700;color:var(--primary);}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.skill-tag{
+  padding:4px 12px;background:var(--light);color:var(--primary);
+  border-radius:20px;font-size:12px;font-weight:600;
+}
+.interest-tag{
+  padding:4px 12px;background:#e8f4fd;color:var(--blue);
+  border-radius:20px;font-size:12px;font-weight:600;
+}
+.section-header-small{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--mid);margin:16px 0 8px;}
+.edit-form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.edit-form-group label{font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:var(--mid);}
+.edit-form-group input,.edit-form-group select{
+  padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'DM Sans',sans-serif;font-size:13px;outline:none;
+}
+.edit-form-group input:focus,.edit-form-group select:focus{border-color:var(--primary);}
+.save-btn{padding:9px 22px;background:var(--primary);color:white;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;}
+.add-skill-row{display:flex;gap:8px;margin-top:6px;}
+.add-skill-row input{flex:1;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;}
+.add-skill-row input:focus{border-color:var(--primary);}
+.add-btn{padding:8px 14px;background:var(--primary);color:white;border:none;border-radius:7px;cursor:pointer;font-size:13px;}
+
+/* PARTICIPATION */
+.part-card{
+  background:white;border-radius:10px;padding:16px;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.part-info .part-title{font-weight:600;font-size:14px;}
+.part-info .part-org{font-size:12px;color:var(--mid);margin-top:2px;}
+.part-info .part-date{font-size:11px;color:var(--mid);margin-top:4px;}
+.hours-badge{
+  font-family:'Fraunces',serif;font-size:22px;color:var(--primary);
+  background:var(--light);padding:8px 16px;border-radius:10px;text-align:center;
+}
+.hours-badge small{display:block;font-size:10px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:var(--mid);font-family:'DM Sans',sans-serif;}
+.parts-list{display:flex;flex-direction:column;gap:10px;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;right:28px;z-index:999;
+  background:var(--dark);color:white;
+  padding:12px 20px;border-radius:10px;font-size:13px;
+  transform:translateY(80px);opacity:0;
+  transition:all 0.3s;pointer-events:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-left:4px solid var(--accent);}
+.toast.error{border-left:4px solid var(--red);}
+
+/* RECS HEADER */
+.rec-header{
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--light),#e8f4fd);
+  border-radius:10px;padding:14px 18px;margin-bottom:18px;
+  border:1px solid rgba(46,204,113,0.2);
+}
+.rec-header-icon{font-size:24px;}
+.rec-header-text h3{font-size:15px;font-weight:600;color:var(--primary);}
+.rec-header-text p{font-size:12px;color:var(--mid);}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🌿</div>
+    Volunteer<span>Connect</span>
+  </div>
+  <div class="nav-section">Discover</div>
+  <div class="nav-item active" onclick="showSection('recommendations')"><span class="nav-icon">✨</span>Recommendations</div>
+  <div class="nav-item" onclick="showSection('browse')"><span class="nav-icon">🔍</span>Browse Opportunities</div>
+  <div class="nav-section">My Activity</div>
+  <div class="nav-item" onclick="showSection('applications')"><span class="nav-icon">📋</span>My Applications</div>
+  <div class="nav-item" onclick="showSection('participation')"><span class="nav-icon">⏱️</span>Participation History</div>
+  <div class="nav-item" onclick="showSection('feedback')"><span class="nav-icon">⭐</span>Give Feedback</div>
+  <div class="nav-section">Account</div>
+  <div class="nav-item" onclick="showSection('profile')"><span class="nav-icon">👤</span>My Profile</div>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" onclick="logout()">↩ Sign Out</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Recommendations</div>
+    <div class="user-chip">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <span class="user-name" id="user-name">Loading…</span>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="section active" id="section-recommendations">
+    <div class="rec-header">
+      <div class="rec-header-icon">✨</div>
+      <div class="rec-header-text">
+        <h3>Personalized for You</h3>
+        <p>Based on your skills and interests — updated in real time</p>
+      </div>
+    </div>
+    <div class="stats-strip" id="rec-stats"></div>
+    <div class="cards-grid" id="rec-cards"><div class="empty-state"><div class="es-icon">🔄</div><p>Loading recommendations…</p></div></div>
+  </div>
+
+  <!-- BROWSE -->
+  <div class="section" id="section-browse">
+    <div class="sec-header">
+      <div><div class="sec-title">Browse Opportunities</div><div class="sec-sub">Filter and find opportunities that suit you</div></div>
+    </div>
+    <div class="filter-bar">
+      <input type="text" id="f-keyword" placeholder="🔍 Search keyword…"/>
+      <input type="text" id="f-location" placeholder="📍 Location"/>
+      <select id="f-mode">
+        <option value="">All Modes</option>
+        <option value="Online">Online</option>
+        <option value="Offline">Offline</option>
+        <option value="Hybrid">Hybrid</option>
+      </select>
+      <select id="f-cause"><option value="">All Causes</option></select>
+      <select id="f-skill"><option value="">All Skills</option></select>
+      <button class="filter-btn" onclick="loadBrowse()">Search</button>
+      <button class="clear-btn" onclick="clearFilters()">Clear</button>
+    </div>
+    <div class="cards-grid" id="browse-cards"><div class="empty-state"><div class="es-icon">🔍</div><p>Use filters above and click Search</p></div></div>
+  </div>
+
+  <!-- APPLICATIONS -->
+  <div class="section" id="section-applications">
+    <div class="sec-header">
+      <div><div class="sec-title">My Applications</div><div class="sec-sub">Track the status of every opportunity you've applied for</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Opportunity</th><th>Organization</th><th>Location / Mode</th><th>Applied On</th><th>Status</th></tr></thead>
+        <tbody id="apps-tbody"><tr><td colspan="5"><div class="empty-state"><div class="es-icon">📋</div><p>Loading applications…</p></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PARTICIPATION -->
+  <div class="section" id="section-participation">
+    <div class="sec-header">
+      <div><div class="sec-title">Participation History</div><div class="sec-sub">A record of every opportunity you've completed</div></div>
+      <div class="sec-badge" id="total-hours-badge">0 hrs total</div>
+    </div>
+    <div class="parts-list" id="parts-list"><div class="empty-state"><div class="es-icon">⏱️</div><p>No participation history yet.</p></div></div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="section" id="section-feedback">
+    <div class="sec-header">
+      <div><div class="sec-title">Give Feedback</div><div class="sec-sub">Rate and review opportunities you participated in</div></div>
+    </div>
+    <div class="feedback-grid" id="feedback-grid"><div class="empty-state"><div class="es-icon">⭐</div><p>No completed opportunities to review yet.</p></div></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="section" id="section-profile">
+    <div class="sec-header">
+      <div><div class="sec-title">My Profile</div><div class="sec-sub">Manage your personal details, skills & interests</div></div>
+    </div>
+    <div class="profile-wrap">
+      <div>
+        <div class="profile-card">
+          <div class="profile-avatar" id="p-avatar">?</div>
+          <div class="profile-name" id="p-name">Loading…</div>
+          <div class="profile-meta" id="p-meta"></div>
+          <div class="profile-stat"><span>Experience</span><span class="profile-stat-val" id="p-exp">—</span></div>
+          <div class="profile-stat"><span>Weekly Hours</span><span class="profile-stat-val" id="p-hours">—</span></div>
+          <div class="profile-stat"><span>Preferred Mode</span><span class="profile-stat-val" id="p-mode">—</span></div>
+          <div class="section-header-small">Skills</div>
+          <div class="tags-wrap" id="p-skills"></div>
+          <div class="section-header-small">Interests</div>
+          <div class="tags-wrap" id="p-interests"></div>
+        </div>
+      </div>
+      <div>
+        <div class="profile-card">
+          <div class="section-header-small" style="margin-top:0">Edit Profile</div>
+          <div class="edit-form-group"><label>Experience Level</label>
+            <select id="edit-exp"><option value="Beginner">Beginner</option><option value="Intermediate">Intermediate</option><option value="Expert">Expert</option></select>
+          </div>
+          <div class="edit-form-group"><label>Weekly Availability (hrs)</label>
+            <input type="number" id="edit-hours" min="1" max="40" placeholder="10"/>
+          </div>
+          <div class="edit-form-group"><label>Preferred Mode</label>
+            <select id="edit-pmode"><option value="Online">Online</option><option value="Offline">Offline</option><option value="Hybrid">Hybrid</option></select>
+          </div>
+          <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+
+          <div class="section-header-small">Add Skill</div>
+          <div class="add-skill-row">
+            <input type="text" id="new-skill" placeholder="e.g. Teaching, Coding…"/>
+            <button class="add-btn" onclick="addSkill()">+ Add</button>
+          </div>
+
+          <div class="section-header-small">Add Interest</div>
+          <div class="add-skill-row">
+            <input type="text" id="new-interest" placeholder="e.g. Environment, Education…"/>
+            <button class="add-btn" onclick="addInterest()">+ Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+//const API='http://localhost:5000/api';
+const API = "https://volunteer-system-sjz2.onrender.com/api";
+let USER=null;
+let currentRatings={};
+
+// INIT
+(function(){
+  const raw=localStorage.getItem('user');
+  const role=localStorage.getItem('role');
+  if(!raw||role!=='volunteer'){window.location.href='login.html';return;}
+  USER=JSON.parse(raw);
+  document.getElementById('user-name').textContent=USER.name;
+  document.getElementById('user-avatar').textContent=USER.name.charAt(0).toUpperCase();
+  loadStats();loadRecommendations();loadCausesAndSkills();
+})();
+
+function showSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`section-${name}`).classList.add('active');
+  const items=document.querySelectorAll('.nav-item');
+  items.forEach(i=>{if(i.getAttribute('onclick')&&i.getAttribute('onclick').includes(name))i.classList.add('active');});
+  const titles={recommendations:'Recommendations',browse:'Browse Opportunities',applications:'My Applications',participation:'Participation History',feedback:'Give Feedback',profile:'My Profile'};
+  document.getElementById('topbar-title').textContent=titles[name]||name;
+  if(name==='applications')loadApplications();
+  if(name==='participation')loadParticipation();
+  if(name==='feedback')loadFeedback();
+  if(name==='profile')loadProfile();
+}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast show ${type}`;
+  setTimeout(()=>t.className='toast',2800);
+}
+
+async function loadStats(){
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/stats`,{credentials:'include'});
+    const s=await r.json();
+    document.getElementById('rec-stats').innerHTML=`
+      <div class="stat-card green"><div class="stat-label">Total Hours</div><div class="stat-value">${s.total_hours||0}</div><div class="stat-sub">Hours volunteered</div></div>
+      <div class="stat-card"><div class="stat-label">Participations</div><div class="stat-value">${s.total_participations||0}</div><div class="stat-sub">Completed</div></div>
+      <div class="stat-card orange"><div class="stat-label">Applications</div><div class="stat-value">${s.total_applications||0}</div><div class="stat-sub">Total submitted</div></div>
+      <div class="stat-card blue"><div class="stat-label">City</div><div class="stat-value" style="font-size:18px">${USER.city||'—'}</div><div class="stat-sub">Home location</div></div>
+    `;
+  }catch(e){}
+}
+
+async function loadRecommendations(){
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/recommendations`,{credentials:'include'});
+    const opps=await r.json();
+    renderCards('rec-cards',opps,true);
+  }catch(e){document.getElementById('rec-cards').innerHTML='<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not load recommendations. Is the backend running?</p></div>';}
+}
+
+async function loadCausesAndSkills(){
+  try{
+    const [cr,sr]=await Promise.all([
+      fetch(`${API}/causes`),fetch(`${API}/skills`)
+    ]);
+    const causes=await cr.json();const skills=await sr.json();
+    const cs=document.getElementById('f-cause');
+    causes.forEach(c=>{const o=document.createElement('option');o.value=c.cause_name;o.textContent=c.cause_name;cs.appendChild(o);});
+    const ss=document.getElementById('f-skill');
+    skills.forEach(s=>{const o=document.createElement('option');o.value=s.skill_name;o.textContent=s.skill_name;ss.appendChild(o);});
+  }catch(e){}
+}
+
+async function loadBrowse(){
+  const params=new URLSearchParams();
+  const kw=document.getElementById('f-keyword').value;
+  const loc=document.getElementById('f-location').value;
+  const mode=document.getElementById('f-mode').value;
+  const cause=document.getElementById('f-cause').value;
+  const skill=document.getElementById('f-skill').value;
+  if(kw)params.append('keyword',kw);
+  if(loc)params.append('location',loc);
+  if(mode)params.append('mode',mode);
+  if(cause)params.append('cause',cause);
+  if(skill)params.append('skill',skill);
+  document.getElementById('browse-cards').innerHTML='<div class="empty-state"><div class="es-icon">🔄</div><p>Searching…</p></div>';
+  try{
+    const r=await fetch(`${API}/opportunities?${params}`,{credentials:'include'});
+    const opps=await r.json();
+    renderCards('browse-cards',opps,false);
+  }catch(e){document.getElementById('browse-cards').innerHTML='<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not reach server.</p></div>';}
+}
+
+function clearFilters(){
+  ['f-keyword','f-location'].forEach(id=>document.getElementById(id).value='');
+  ['f-mode','f-cause','f-skill'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('browse-cards').innerHTML='<div class="empty-state"><div class="es-icon">🔍</div><p>Use filters above and click Search</p></div>';
+}
+
+function renderCards(containerId,opps,showMatchBadge){
+  const c=document.getElementById(containerId);
+  if(!opps.length){c.innerHTML='<div class="empty-state"><div class="es-icon">🌐</div><p>No opportunities found. Try different filters or update your profile with more skills.</p></div>';return;}
+  c.innerHTML=opps.map(o=>{
+    const modeTag=o.mode==='Online'?'tag-blue':o.mode==='Hybrid'?'tag-purple':'tag-orange';
+    const matchBadge=showMatchBadge&&o.match_type?`<span class="match-badge">${o.match_type==='skill'?'🎯 Skill':'💡 Interest'} Match</span>`:'';
+    return `<div class="opp-card">
+      <div class="opp-card-top">
+        <div>
+          <div class="opp-title">${o.title}</div>
+          <div class="opp-org">by ${o.org_name}</div>
+        </div>
+        <span class="tag ${modeTag}">${o.mode||'—'}</span>
+      </div>
+      <div class="opp-meta">
+        ${o.location?`<span class="meta-item">📍 ${o.location}</span>`:''}
+        ${o.hours_required?`<span class="meta-item">⏱ ${o.hours_required}h</span>`:''}
+        ${o.cause_name?`<span class="meta-item tag tag-green" style="font-size:10px">${o.cause_name}</span>`:''}
+        ${o.start_date?`<span class="meta-item">📅 ${o.start_date}</span>`:''}
+      </div>
+      ${o.description?`<div class="opp-desc">${o.description}</div>`:''}
+      <div class="opp-footer">
+        ${matchBadge}
+        <button class="apply-btn" onclick="applyFor(${o.opp_id},this)">Apply Now</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function applyFor(oppId,btn){
+  btn.disabled=true;btn.textContent='Applying…';
+  try{
+    const r=await fetch(`${API}/apply`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({volunteer_id:USER.volunteer_id,opp_id:oppId})
+    });
+    const d=await r.json();
+    if(d.success){btn.textContent='✓ Applied';toast('Application submitted!','success');}
+    else{btn.textContent='Apply Now';btn.disabled=false;toast(d.message||'Could not apply.','error');}
+  }catch{btn.textContent='Apply Now';btn.disabled=false;toast('Server error.','error');}
+}
+
+async function loadApplications(){
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/applications`,{credentials:'include'});
+    const apps=await r.json();
+    const tbody=document.getElementById('apps-tbody');
+    if(!apps.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="es-icon">📋</div><p>No applications yet. Browse opportunities and apply!</p></div></td></tr>';return;}
+    tbody.innerHTML=apps.map(a=>{
+      const cls=a.status==='Accepted'?'accepted':a.status==='Rejected'?'rejected':'pending';
+      return `<tr>
+        <td><strong>${a.title}</strong></td>
+        <td>${a.org_name}</td>
+        <td>${a.location||'—'} · ${a.mode||'—'}</td>
+        <td>${a.applied_date}</td>
+        <td><span class="status-pill status-${cls}">${a.status}</span></td>
+      </tr>`;
+    }).join('');
+  }catch(e){}
+}
+
+async function loadParticipation(){
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/participation`,{credentials:'include'});
+    const parts=await r.json();
+    const list=document.getElementById('parts-list');
+    if(!parts.length){list.innerHTML='<div class="empty-state"><div class="es-icon">⏱️</div><p>No participation yet. Get started by applying to opportunities!</p></div>';return;}
+    let total=0;
+    list.innerHTML=parts.map(p=>{total+=(p.hours_worked||0);
+      return `<div class="part-card">
+        <div class="part-info">
+          <div class="part-title">${p.title}</div>
+          <div class="part-org">${p.org_name}</div>
+          <div class="part-date">📅 ${p.participation_date}</div>
+        </div>
+        <div class="hours-badge">${p.hours_worked||'—'}<small>hours</small></div>
+      </div>`;
+    }).join('');
+    document.getElementById('total-hours-badge').textContent=`${total} hrs total`;
+  }catch(e){}
+}
+
+async function loadFeedback(){
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/participation`,{credentials:'include'});
+    const parts=await r.json();
+    const grid=document.getElementById('feedback-grid');
+    if(!parts.length){grid.innerHTML='<div class="empty-state"><div class="es-icon">⭐</div><p>Participate in opportunities first to leave feedback.</p></div>';return;}
+    grid.innerHTML=parts.map(p=>`
+      <div class="feedback-card" id="fb-card-${p.opp_id}">
+        <div class="fb-opp-title">${p.title}</div>
+        <div class="fb-org">${p.org_name}</div>
+        <div class="stars" id="stars-${p.opp_id}">
+          ${[1,2,3,4,5].map(n=>`<span class="star" onclick="setRating(${p.opp_id},${n})" title="${n} star${n>1?'s':''}">★</span>`).join('')}
+        </div>
+        <textarea id="comment-${p.opp_id}" placeholder="Share your experience…"></textarea>
+        <button class="fb-submit" onclick="submitFeedback(${p.opp_id},this)">Submit Review</button>
+      </div>
+    `).join('');
+  }catch(e){}
+}
+
+function setRating(oppId,rating){
+  currentRatings[oppId]=rating;
+  const stars=document.querySelectorAll(`#stars-${oppId} .star`);
+  stars.forEach((s,i)=>{s.classList.toggle('active',i<rating);});
+}
+
+async function submitFeedback(oppId,btn){
+  const rating=currentRatings[oppId];
+  if(!rating)return toast('Please select a star rating.','error');
+  const comment=document.getElementById(`comment-${oppId}`).value;
+  try{
+    const r=await fetch(`${API}/feedback`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({volunteer_id:USER.volunteer_id,opp_id:oppId,rating,comment})
+    });
+    const d=await r.json();
+    if(d.success){
+      const card=document.getElementById(`fb-card-${oppId}`);
+      card.innerHTML=`<div class="fb-opp-title">Feedback submitted!</div><div class="fb-done">★ ${rating}/5 — Thank you for your review.</div>`;
+      toast('Feedback submitted!','success');
+    }
+  }catch{toast('Server error.','error');}
+}
+
+async function loadProfile(){
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/profile`,{credentials:'include'});
+    const p=await r.json();
+    document.getElementById('p-avatar').textContent=p.name.charAt(0).toUpperCase();
+    document.getElementById('p-name').textContent=p.name;
+    document.getElementById('p-meta').textContent=`${p.email} · ${p.city||'No city set'}`;
+    document.getElementById('p-exp').textContent=p.experience_level||'—';
+    document.getElementById('p-hours').textContent=p.availability_hours?`${p.availability_hours} hrs/week`:'—';
+    document.getElementById('p-mode').textContent=p.preferred_mode||'—';
+    document.getElementById('p-skills').innerHTML=p.skills?p.skills.split(',').map(s=>`<span class="skill-tag">${s.trim()}</span>`).join(''):'<span style="font-size:12px;color:var(--mid)">No skills added yet</span>';
+    document.getElementById('p-interests').innerHTML=p.interests?p.interests.split(',').map(i=>`<span class="interest-tag">${i.trim()}</span>`).join(''):'<span style="font-size:12px;color:var(--mid)">No interests added yet</span>';
+    // Pre-fill edit form
+    const expSel=document.getElementById('edit-exp');
+    Array.from(expSel.options).forEach(o=>{o.selected=o.value===p.experience_level;});
+    document.getElementById('edit-hours').value=p.availability_hours||'';
+    const modeSel=document.getElementById('edit-pmode');
+    Array.from(modeSel.options).forEach(o=>{o.selected=o.value===p.preferred_mode;});
+  }catch(e){}
+}
+
+async function saveProfile(){
+  const payload={
+    experience_level:document.getElementById('edit-exp').value,
+    availability_hours:parseInt(document.getElementById('edit-hours').value)||5,
+    preferred_mode:document.getElementById('edit-pmode').value
+  };
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/profile`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      credentials:'include',body:JSON.stringify(payload)
+    });
+    const d=await r.json();
+    if(d.success){toast('Profile updated!','success');loadProfile();}
+  }catch{toast('Server error.','error');}
+}
+
+async function addSkill(){
+  const skill=document.getElementById('new-skill').value.trim();
+  if(!skill)return toast('Please enter a skill.','error');
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/skills`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      credentials:'include',body:JSON.stringify({skill_name:skill})
+    });
+    const d=await r.json();
+    if(d.success){document.getElementById('new-skill').value='';toast(`Skill "${skill}" added!`,'success');loadProfile();}
+  }catch{toast('Server error.','error');}
+}
+
+async function addInterest(){
+  const interest=document.getElementById('new-interest').value.trim();
+  if(!interest)return toast('Please enter an interest.','error');
+  try{
+    const r=await fetch(`${API}/volunteer/${USER.volunteer_id}/interests`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      credentials:'include',body:JSON.stringify({interest_name:interest})
+    });
+    const d=await r.json();
+    if(d.success){document.getElementById('new-interest').value='';toast(`Interest "${interest}" added!`,'success');loadProfile();}
+  }catch{toast('Server error.','error');}
+}
+
+function logout(){
+  localStorage.clear();window.location.href='login.html';
+}
+</script>
+</body>
+</html>

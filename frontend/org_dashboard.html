@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Organization Dashboard — VolunteerConnect</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --primary:#1a3a6b;--light:#e8eef5;--accent:#3d8bcd;
+  --green:#1a6b3c;--green-light:#e8f5ee;--green-mid:#2ecc71;
+  --orange:#e67e22;--red:#e74c3c;--purple:#8e44ad;
+  --dark:#111;--dark2:#1c1c1c;--mid:#666;--border:#ebebeb;--bg:#f5f6f8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);}
+.layout{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{
+  width:240px;background:var(--dark);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;
+}
+.sidebar-logo{
+  padding:22px 20px;font-family:'Fraunces',serif;
+  font-size:18px;color:white;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,#3d8bcd,#2ecc71);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.sidebar-logo span{color:var(--accent);}
+.nav-section{padding:20px 12px 8px;font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,0.25);text-transform:uppercase;}
+.nav-item{
+  padding:10px 16px;display:flex;align-items:center;gap:11px;
+  color:rgba(255,255,255,0.5);cursor:pointer;font-size:13.5px;font-weight:500;
+  border-left:3px solid transparent;transition:all 0.18s;border-radius:0 8px 8px 0;margin:0 8px 1px 0;
+}
+.nav-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:white;background:rgba(61,139,205,0.15);border-left-color:var(--accent);}
+.nav-icon{font-size:15px;width:20px;text-align:center;}
+.sidebar-bottom{margin-top:auto;padding:16px;}
+.logout-btn{
+  width:100%;padding:9px;background:rgba(231,76,60,0.12);
+  border:1px solid rgba(231,76,60,0.25);color:#e74c3c;
+  border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+}
+.logout-btn:hover{background:rgba(231,76,60,0.2);}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;}
+.topbar{
+  background:white;padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-family:'Fraunces',serif;font-size:18px;}
+.user-chip{
+  display:flex;align-items:center;gap:10px;
+  background:var(--light);padding:6px 14px;border-radius:20px;
+}
+.user-avatar{
+  width:30px;height:30px;background:var(--primary);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:700;font-size:12px;
+}
+.user-name{font-size:13px;font-weight:600;color:var(--primary);}
+
+/* SECTIONS */
+.section{display:none;padding:24px 28px;}
+.section.active{display:block;}
+
+/* STATS */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:white;border-radius:12px;padding:18px;border:1px solid var(--border);}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--mid);margin-bottom:8px;}
+.stat-value{font-family:'Fraunces',serif;font-size:30px;line-height:1;}
+.stat-sub{font-size:11px;color:var(--mid);margin-top:4px;}
+.stat-card.blue .stat-value{color:var(--primary);}
+.stat-card.green .stat-value{color:var(--green);}
+.stat-card.orange .stat-value{color:var(--orange);}
+.stat-card.purple .stat-value{color:var(--purple);}
+
+/* SEC HEADER */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.sec-title{font-family:'Fraunces',serif;font-size:20px;}
+.sec-sub{font-size:13px;color:var(--mid);margin-top:3px;}
+
+/* POST FORM */
+.post-form{
+  background:white;border-radius:14px;padding:28px;border:1px solid var(--border);
+  max-width:860px;
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:2px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:var(--mid);}
+input,select,textarea{
+  padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:13.5px;color:#111;
+  background:#fafafa;transition:all 0.2s;outline:none;
+}
+input:focus,select:focus,textarea:focus{
+  background:white;border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,58,107,0.07);
+}
+.submit-btn{
+  padding:12px 28px;background:var(--primary);color:white;border:none;
+  border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;margin-top:4px;
+  transition:all 0.2s;
+}
+.submit-btn:hover{background:#152e56;transform:translateY(-1px);}
+.msg{margin-top:12px;padding:9px 12px;border-radius:7px;font-size:13px;display:none;}
+.msg.error{background:#fff0f0;color:#c0392b;border:1px solid #f5c6c6;display:block;}
+.msg.success{background:#f0fff4;color:#1a6b3c;border:1px solid #b7e4c7;display:block;}
+
+/* OPP CARDS (posted) */
+.opp-cards{display:flex;flex-direction:column;gap:12px;}
+.posted-card{
+  background:white;border-radius:12px;padding:18px 20px;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.posted-info .posted-title{font-weight:600;font-size:14.5px;}
+.posted-info .posted-meta{font-size:12px;color:var(--mid);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;}
+.posted-meta span{display:flex;align-items:center;gap:3px;}
+.posted-stats{display:flex;gap:10px;align-items:center;flex-shrink:0;}
+.posted-stat-pill{
+  text-align:center;padding:6px 14px;border-radius:8px;
+  background:var(--light);
+}
+.posted-stat-pill .psp-val{font-family:'Fraunces',serif;font-size:18px;color:var(--primary);line-height:1;}
+.posted-stat-pill .psp-label{font-size:10px;color:var(--mid);}
+.tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.3px;}
+.tag-blue{background:#e8f4fd;color:var(--primary);}
+.tag-green{background:var(--green-light);color:var(--green);}
+.tag-orange{background:#fef5e7;color:var(--orange);}
+.tag-purple{background:#f3e5f5;color:var(--purple);}
+
+/* APPLICATIONS TABLE */
+.table-wrap{background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{padding:11px 14px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--mid);background:#f9f9f7;border-bottom:1px solid var(--border);}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f9fafc;}
+.status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.status-pending{background:#fff3e0;color:#e65100;}
+.status-accepted{background:var(--green-light);color:var(--green);}
+.status-rejected{background:#ffebee;color:var(--red);}
+.action-btns{display:flex;gap:6px;}
+.accept-btn{
+  padding:5px 12px;background:var(--green-light);color:var(--green);
+  border:1px solid rgba(26,107,60,0.2);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;
+  transition:all 0.2s;
+}
+.accept-btn:hover{background:var(--green);color:white;}
+.reject-btn{
+  padding:5px 12px;background:#ffebee;color:var(--red);
+  border:1px solid rgba(231,76,60,0.2);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;
+  transition:all 0.2s;
+}
+.reject-btn:hover{background:var(--red);color:white;}
+
+/* FEEDBACK VIEW */
+.feedback-list{display:flex;flex-direction:column;gap:12px;}
+.fb-item{
+  background:white;border-radius:12px;padding:18px;border:1px solid var(--border);
+}
+.fb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.fb-vol{font-weight:600;font-size:14px;}
+.fb-opp{font-size:12px;color:var(--mid);}
+.fb-stars{color:var(--orange);font-size:16px;letter-spacing:1px;}
+.fb-comment{font-size:13px;color:var(--mid);font-style:italic;margin-top:6px;line-height:1.6;}
+.fb-date{font-size:11px;color:#bbb;margin-top:6px;}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:white;border-radius:10px;border:1px solid var(--border);}
+.filter-bar select,.filter-bar input{padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;flex:1;min-width:110px;}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--primary);}
+.filter-btn{padding:8px 18px;background:var(--primary);color:white;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;}
+
+/* EMPTY */
+.empty-state{padding:48px;text-align:center;color:var(--mid);}
+.empty-state .es-icon{font-size:40px;margin-bottom:12px;}
+.empty-state p{font-size:14px;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;right:28px;z-index:999;
+  background:var(--dark);color:white;
+  padding:12px 20px;border-radius:10px;font-size:13px;
+  transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-left:4px solid var(--green-mid);}
+.toast.error{border-left:4px solid var(--red);}
+
+/* ORG PROFILE */
+.org-profile-card{background:white;border-radius:14px;padding:28px;border:1px solid var(--border);max-width:600px;}
+.org-avatar{
+  width:60px;height:60px;background:var(--primary);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;color:white;font-weight:700;margin-bottom:14px;
+}
+.org-name{font-family:'Fraunces',serif;font-size:22px;margin-bottom:6px;}
+.org-detail{font-size:13.5px;color:var(--mid);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏢</div>
+    Volunteer<span>Connect</span>
+  </div>
+  <div class="nav-section">Overview</div>
+  <div class="nav-item active" onclick="showSection('overview')"><span class="nav-icon">📊</span>Dashboard</div>
+  <div class="nav-section">Opportunities</div>
+  <div class="nav-item" onclick="showSection('post')"><span class="nav-icon">➕</span>Post Opportunity</div>
+  <div class="nav-item" onclick="showSection('posted')"><span class="nav-icon">📋</span>My Opportunities</div>
+  <div class="nav-section">Applications</div>
+  <div class="nav-item" onclick="showSection('applications')"><span class="nav-icon">👥</span>Manage Applications</div>
+  <div class="nav-section">Insights</div>
+  <div class="nav-item" onclick="showSection('feedback')"><span class="nav-icon">⭐</span>Feedback Received</div>
+  <div class="nav-item" onclick="showSection('profile')"><span class="nav-icon">🏢</span>Organization Profile</div>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" onclick="logout()">↩ Sign Out</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="user-chip">
+      <div class="user-avatar" id="user-avatar">O</div>
+      <span class="user-name" id="user-name">Loading…</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section active" id="section-overview">
+    <div class="stats-strip" id="org-stats-strip">
+      <div class="stat-card blue"><div class="stat-label">Opportunities</div><div class="stat-value">—</div><div class="stat-sub">Posted</div></div>
+      <div class="stat-card green"><div class="stat-label">Total Volunteers</div><div class="stat-value">—</div><div class="stat-sub">Accepted</div></div>
+      <div class="stat-card orange"><div class="stat-label">Hours Contributed</div><div class="stat-value">—</div><div class="stat-sub">By volunteers</div></div>
+      <div class="stat-card purple"><div class="stat-label">Avg Rating</div><div class="stat-value">—</div><div class="stat-sub">From feedback</div></div>
+    </div>
+    <div class="sec-header"><div><div class="sec-title">Recent Applications</div><div class="sec-sub">Latest volunteer applications to your opportunities</div></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Volunteer</th><th>Opportunity</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="recent-apps-tbody"><tr><td colspan="5"><div class="empty-state"><div class="es-icon">🔄</div><p>Loading…</p></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- POST OPPORTUNITY -->
+  <div class="section" id="section-post">
+    <div class="sec-header"><div><div class="sec-title">Post a New Opportunity</div><div class="sec-sub">Fill in the details below to publish your opportunity</div></div></div>
+    <div class="post-form">
+      <div class="form-grid">
+        <div class="form-group full"><label>Opportunity Title *</label><input type="text" id="opp-title" placeholder="e.g. Tree Plantation Drive"/></div>
+        <div class="form-group full"><label>Description</label><textarea id="opp-desc" rows="3" placeholder="Describe the opportunity, what volunteers will do…"></textarea></div>
+        <div class="form-group"><label>Location</label><input type="text" id="opp-location" placeholder="e.g. Chennai"/></div>
+        <div class="form-group"><label>Mode</label>
+          <select id="opp-mode"><option value="Online">Online</option><option value="Offline">Offline</option><option value="Hybrid">Hybrid</option></select>
+        </div>
+        <div class="form-group"><label>Category</label><input type="text" id="opp-category" placeholder="e.g. Education, Environment"/></div>
+        <div class="form-group"><label>Cause</label>
+          <select id="opp-cause"><option value="">Select cause…</option></select>
+        </div>
+        <div class="form-group"><label>Start Date</label><input type="date" id="opp-start"/></div>
+        <div class="form-group"><label>End Date</label><input type="date" id="opp-end"/></div>
+        <div class="form-group"><label>Hours Required</label><input type="number" id="opp-hours" placeholder="20" min="1"/></div>
+        <div class="form-group"><label>Required Skill</label><input type="text" id="opp-skill" placeholder="e.g. Teaching"/></div>
+        <div class="form-group"><label>Minimum Experience</label>
+          <select id="opp-level"><option value="Beginner">Beginner</option><option value="Intermediate">Intermediate</option><option value="Expert">Expert</option></select>
+        </div>
+        <div class="form-group"><label>Volunteers Needed</label><input type="number" id="opp-needed" placeholder="10" min="1"/></div>
+      </div>
+      <button class="submit-btn" onclick="postOpportunity()">Publish Opportunity →</button>
+      <div class="msg" id="post-msg"></div>
+    </div>
+  </div>
+
+  <!-- MY OPPORTUNITIES -->
+  <div class="section" id="section-posted">
+    <div class="sec-header">
+      <div><div class="sec-title">My Opportunities</div><div class="sec-sub">All opportunities you have posted</div></div>
+    </div>
+    <div class="opp-cards" id="posted-list"><div class="empty-state"><div class="es-icon">🔄</div><p>Loading…</p></div></div>
+  </div>
+
+  <!-- MANAGE APPLICATIONS -->
+  <div class="section" id="section-applications">
+    <div class="sec-header">
+      <div><div class="sec-title">Manage Applications</div><div class="sec-sub">Review and respond to volunteer applications</div></div>
+    </div>
+    <div class="filter-bar">
+      <select id="app-status-filter">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Accepted">Accepted</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+      <button class="filter-btn" onclick="loadApplications()">Filter</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Volunteer</th><th>Contact</th><th>Opportunity</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="apps-tbody"><tr><td colspan="6"><div class="empty-state"><div class="es-icon">🔄</div><p>Loading…</p></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="section" id="section-feedback">
+    <div class="sec-header"><div><div class="sec-title">Feedback Received</div><div class="sec-sub">What volunteers say about your programs</div></div></div>
+    <div class="feedback-list" id="fb-list"><div class="empty-state"><div class="es-icon">🔄</div><p>Loading…</p></div></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="section" id="section-profile">
+    <div class="sec-header"><div><div class="sec-title">Organization Profile</div><div class="sec-sub">Your public organization details</div></div></div>
+    <div class="org-profile-card" id="org-profile-card">
+      <div class="empty-state"><div class="es-icon">🔄</div><p>Loading…</p></div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+//const API='http://localhost:5000/api';
+const API = "https://volunteer-system-sjz2.onrender.com/api";
+let ORG=null;
+let allApps=[];
+
+(function(){
+  const raw=localStorage.getItem('user');
+  const role=localStorage.getItem('role');
+  if(!raw||role!=='organization'){window.location.href='login.html';return;}
+  ORG=JSON.parse(raw);
+  document.getElementById('user-name').textContent=ORG.org_name;
+  document.getElementById('user-avatar').textContent=ORG.org_name.charAt(0).toUpperCase();
+  loadStats();loadRecentApps();loadCauses();
+})();
+
+function showSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`section-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(i=>{
+    if(i.getAttribute('onclick')&&i.getAttribute('onclick').includes(name))i.classList.add('active');
+  });
+  const titles={overview:'Dashboard',post:'Post Opportunity',posted:'My Opportunities',applications:'Manage Applications',feedback:'Feedback Received',profile:'Organization Profile'};
+  document.getElementById('topbar-title').textContent=titles[name]||name;
+  if(name==='posted')loadPosted();
+  if(name==='applications')loadApplications();
+  if(name==='feedback')loadFeedback();
+  if(name==='profile')loadProfile();
+}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast show ${type}`;
+  setTimeout(()=>t.className='toast',2800);
+}
+
+async function loadStats(){
+  try{
+    const r=await fetch(`${API}/organization/${ORG.org_id}/stats`,{credentials:'include'});
+    const s=await r.json();
+    document.getElementById('org-stats-strip').innerHTML=`
+      <div class="stat-card blue"><div class="stat-label">Opportunities</div><div class="stat-value">${s.total_opportunities||0}</div><div class="stat-sub">Posted by you</div></div>
+      <div class="stat-card green"><div class="stat-label">Total Volunteers</div><div class="stat-value">${s.total_volunteers||0}</div><div class="stat-sub">Accepted volunteers</div></div>
+      <div class="stat-card orange"><div class="stat-label">Hours Contributed</div><div class="stat-value">${s.total_hours||0}</div><div class="stat-sub">By all volunteers</div></div>
+      <div class="stat-card purple"><div class="stat-label">Avg Rating</div><div class="stat-value">${s.avg_rating||'—'}</div><div class="stat-sub">From volunteer reviews</div></div>
+    `;
+  }catch(e){}
+}
+
+async function loadCauses(){
+  try{
+    const r=await fetch(`${API}/causes`);
+    const causes=await r.json();
+    const cs=document.getElementById('opp-cause');
+    causes.forEach(c=>{const o=document.createElement('option');o.value=c.cause_id;o.textContent=c.cause_name;cs.appendChild(o);});
+  }catch(e){}
+}
+
+async function loadRecentApps(){
+  try{
+    const r=await fetch(`${API}/organization/${ORG.org_id}/applications`,{credentials:'include'});
+    const apps=await r.json();
+    const tbody=document.getElementById('recent-apps-tbody');
+    const recent=apps.slice(0,8);
+    if(!recent.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="es-icon">👥</div><p>No applications yet.</p></div></td></tr>';return;}
+    tbody.innerHTML=recent.map(a=>renderAppRow(a,true)).join('');
+  }catch(e){}
+}
+
+async function postOpportunity(){
+  const title=document.getElementById('opp-title').value.trim();
+  if(!title){showMsg('post-msg','Please enter a title.','error');return;}
+  const payload={
+    org_id:ORG.org_id,
+    title,
+    description:document.getElementById('opp-desc').value,
+    location:document.getElementById('opp-location').value,
+    mode:document.getElementById('opp-mode').value,
+    category:document.getElementById('opp-category').value,
+    cause_id:document.getElementById('opp-cause').value||null,
+    start_date:document.getElementById('opp-start').value||null,
+    end_date:document.getElementById('opp-end').value||null,
+    hours_required:parseInt(document.getElementById('opp-hours').value)||null,
+    required_skill:document.getElementById('opp-skill').value,
+    minimum_level:document.getElementById('opp-level').value,
+    volunteers_needed:parseInt(document.getElementById('opp-needed').value)||10
+  };
+  try{
+    const r=await fetch(`${API}/opportunities`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      credentials:'include',body:JSON.stringify(payload)
+    });
+    const d=await r.json();
+    if(d.success){
+      showMsg('post-msg','Opportunity published successfully!','success');
+      toast('Opportunity posted!','success');
+      document.querySelectorAll('#section-post input, #section-post select, #section-post textarea').forEach(el=>{
+        if(el.tagName==='SELECT'){el.selectedIndex=0;}else{el.value='';}
+      });
+      loadStats();
+    }else{showMsg('post-msg',d.message||'Failed to post.','error');}
+  }catch{showMsg('post-msg','Server error.','error');}
+}
+
+function showMsg(id,text,type){
+  const el=document.getElementById(id);el.textContent=text;el.className=`msg ${type}`;
+  setTimeout(()=>el.className='msg',3500);
+}
+
+async function loadPosted(){
+  try{
+    const r=await fetch(`${API}/opportunities?org=${ORG.org_id}`,{credentials:'include'});
+    const opps=await r.json();
+    // Filter to only org's
+    const r2=await fetch(`${API}/organization/${ORG.org_id}/applications`,{credentials:'include'});
+    const apps=await r2.json();
+    const countByOpp={};
+    apps.forEach(a=>{
+      if(!countByOpp[a.opp_id])countByOpp[a.opp_id]={total:0,accepted:0,pending:0};
+      countByOpp[a.opp_id].total++;
+      if(a.status==='Accepted')countByOpp[a.opp_id].accepted++;
+      if(a.status==='Pending')countByOpp[a.opp_id].pending++;
+    });
+    const myOpps=opps.filter(o=>o.org_name===ORG.org_name);
+    const list=document.getElementById('posted-list');
+    if(!myOpps.length){list.innerHTML='<div class="empty-state"><div class="es-icon">📋</div><p>No opportunities posted yet. Click "Post Opportunity" to get started.</p></div>';return;}
+    list.innerHTML=myOpps.map(o=>{
+      const counts=countByOpp[o.opp_id]||{total:0,accepted:0,pending:0};
+      const modeTag=o.mode==='Online'?'tag-blue':o.mode==='Hybrid'?'tag-purple':'tag-orange';
+      return `<div class="posted-card">
+        <div class="posted-info">
+          <div class="posted-title">${o.title} <span class="tag ${modeTag}">${o.mode||'—'}</span></div>
+          <div class="posted-meta">
+            ${o.location?`<span>📍 ${o.location}</span>`:''}
+            ${o.hours_required?`<span>⏱ ${o.hours_required}h</span>`:''}
+            ${o.cause_name?`<span>🏷 ${o.cause_name}</span>`:''}
+            ${o.start_date?`<span>📅 ${o.start_date}</span>`:''}
+          </div>
+        </div>
+        <div class="posted-stats">
+          <div class="posted-stat-pill"><div class="psp-val">${counts.total}</div><div class="psp-label">Applied</div></div>
+          <div class="posted-stat-pill"><div class="psp-val" style="color:var(--green)">${counts.accepted}</div><div class="psp-label">Accepted</div></div>
+          <div class="posted-stat-pill"><div class="psp-val" style="color:var(--orange)">${counts.pending}</div><div class="psp-label">Pending</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){document.getElementById('posted-list').innerHTML='<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not load. Is the backend running?</p></div>';}
+}
+
+async function loadApplications(){
+  try{
+    const r=await fetch(`${API}/organization/${ORG.org_id}/applications`,{credentials:'include'});
+    allApps=await r.json();
+    const statusFilter=document.getElementById('app-status-filter').value;
+    const apps=statusFilter?allApps.filter(a=>a.status===statusFilter):allApps;
+    const tbody=document.getElementById('apps-tbody');
+    if(!apps.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="es-icon">👥</div><p>No applications match this filter.</p></div></td></tr>';return;}
+    tbody.innerHTML=apps.map(a=>renderAppRow(a,false)).join('');
+  }catch(e){}
+}
+
+function renderAppRow(a,compact){
+  const cls=a.status==='Accepted'?'accepted':a.status==='Rejected'?'rejected':'pending';
+  const actions=a.status==='Pending'?
+    `<div class="action-btns">
+      <button class="accept-btn" onclick="updateStatus(${a.application_id},'Accepted',this)">✓ Accept</button>
+      <button class="reject-btn" onclick="updateStatus(${a.application_id},'Rejected',this)">✗ Reject</button>
+     </div>`:
+    `<span style="font-size:12px;color:var(--mid)">—</span>`;
+  if(compact){
+    return `<tr>
+      <td><strong>${a.volunteer_name}</strong></td>
+      <td>${a.title}</td>
+      <td>${a.applied_date}</td>
+      <td><span class="status-pill status-${cls}">${a.status}</span></td>
+      <td>${actions}</td>
+    </tr>`;
+  }
+  return `<tr>
+    <td><strong>${a.volunteer_name}</strong></td>
+    <td>${a.email||'—'}<br/><span style="font-size:11px;color:var(--mid)">${a.phone||''}</span></td>
+    <td>${a.title}</td>
+    <td>${a.applied_date}</td>
+    <td><span class="status-pill status-${cls}">${a.status}</span></td>
+    <td>${actions}</td>
+  </tr>`;
+}
+
+async function updateStatus(appId,status,btn){
+  btn.disabled=true;
+  try{
+    const r=await fetch(`${API}/application/${appId}/status`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      credentials:'include',body:JSON.stringify({status})
+    });
+    const d=await r.json();
+    if(d.success){
+      toast(`Application ${status.toLowerCase()}!`,status==='Accepted'?'success':'error');
+      loadApplications();loadStats();loadRecentApps();
+    }
+  }catch{toast('Server error.','error');btn.disabled=false;}
+}
+
+async function loadFeedback(){
+  try{
+    // Get all org's opportunities, then fetch feedback for each
+    const r=await fetch(`${API}/opportunities`,{credentials:'include'});
+    const opps=await r.json();
+    const myOpps=opps.filter(o=>o.org_name===ORG.org_name);
+    const list=document.getElementById('fb-list');
+    if(!myOpps.length){list.innerHTML='<div class="empty-state"><div class="es-icon">⭐</div><p>No feedback yet.</p></div>';return;}
+    let html='';
+    for(const opp of myOpps){
+      const fr=await fetch(`${API}/opportunity/${opp.opp_id}/feedback`);
+      const feedbacks=await fr.json();
+      feedbacks.forEach(f=>{
+        const stars='★'.repeat(f.rating)+'☆'.repeat(5-f.rating);
+        html+=`<div class="fb-item">
+          <div class="fb-header">
+            <div>
+              <div class="fb-vol">${f.name}</div>
+              <div class="fb-opp">on: ${opp.title}</div>
+            </div>
+            <div class="fb-stars">${stars}</div>
+          </div>
+          ${f.comment?`<div class="fb-comment">"${f.comment}"</div>`:''}
+          <div class="fb-date">${f.feedback_date}</div>
+        </div>`;
+      });
+    }
+    list.innerHTML=html||'<div class="empty-state"><div class="es-icon">⭐</div><p>No feedback received yet.</p></div>';
+  }catch(e){}
+}
+
+async function loadProfile(){
+  const card=document.getElementById('org-profile-card');
+  card.innerHTML=`
+    <div class="org-avatar">${ORG.org_name.charAt(0).toUpperCase()}</div>
+    <div class="org-name">${ORG.org_name}</div>
+    <div class="org-detail">✉ ${ORG.email}</div>
+  `;
+}
+
+function logout(){localStorage.clear();window.location.href='login.html';}
+</script>
+</body>
+</html>

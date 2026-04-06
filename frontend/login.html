@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VolunteerConnect — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --green:#1a6b3c;--green-light:#e8f5ee;--green-mid:#2ecc71;
+  --blue:#1a3a6b;--blue-light:#e8eef5;--blue-mid:#3d8bcd;
+  --dark:#111;--dark2:#1c1c1c;--mid:#555;--border:#e0e0e0;--cream:#faf9f6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);min-height:100vh;display:flex;flex-direction:column;}
+
+/* NAV */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 48px;border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--green-mid),var(--blue-mid));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.logo-name{font-family:'Fraunces',serif;font-size:18px;color:white;letter-spacing:-0.5px;}
+.logo-name span{color:var(--green-mid);}
+.back-link{font-size:13px;color:rgba(255,255,255,0.45);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+.back-link:hover{color:rgba(255,255,255,0.8);}
+
+/* MAIN LAYOUT */
+.page-wrap{
+  flex:1;display:grid;grid-template-columns:1fr 520px 1fr;
+  align-items:center;gap:0;padding:40px 20px;
+}
+.left-panel{padding:40px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;}
+.left-panel h1{
+  font-family:'Fraunces',serif;font-size:42px;color:white;
+  line-height:1.1;letter-spacing:-1px;margin-bottom:16px;
+}
+.left-panel h1 .accent-green{color:var(--green-mid);}
+.left-panel h1 .accent-blue{color:var(--blue-mid);}
+.left-panel p{font-size:15px;color:rgba(255,255,255,0.45);line-height:1.7;margin-bottom:36px;max-width:320px;}
+.trust-items{display:flex;flex-direction:column;gap:12px;}
+.trust-item{display:flex;align-items:center;gap:12px;}
+.trust-dot{width:8px;height:8px;border-radius:50%;background:var(--green-mid);flex-shrink:0;}
+.trust-text{font-size:13px;color:rgba(255,255,255,0.5);}
+
+/* CARD */
+.login-card{
+  background:white;border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 24px 64px rgba(0,0,0,0.5);
+}
+
+/* TABS */
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;}
+.role-tab{
+  padding:0;border:none;cursor:pointer;
+  transition:all 0.25s;outline:none;
+  position:relative;
+}
+.role-tab-inner{
+  padding:22px 20px 18px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:all 0.25s;
+}
+.role-tab.volunteer{background:#2a2a2a;}
+.role-tab.volunteer.active{background:var(--green-light);}
+.role-tab.organization{background:#252535;}
+.role-tab.organization.active{background:var(--blue-light);}
+.tab-icon{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;transition:all 0.25s;
+}
+.role-tab.volunteer .tab-icon{background:rgba(46,204,113,0.15);border:2px solid rgba(46,204,113,0.25);}
+.role-tab.volunteer.active .tab-icon{background:var(--green);border-color:var(--green);}
+.role-tab.organization .tab-icon{background:rgba(61,139,205,0.15);border-radius:10px;border:2px solid rgba(61,139,205,0.25);}
+.role-tab.organization.active .tab-icon{background:var(--blue);border-color:var(--blue);}
+.tab-title{font-family:'Fraunces',serif;font-size:15px;color:rgba(255,255,255,0.45);transition:color 0.25s;}
+.role-tab.volunteer.active .tab-title{color:var(--green);}
+.role-tab.organization.active .tab-title{color:var(--blue);}
+.tab-desc{font-size:11px;color:rgba(255,255,255,0.25);text-align:center;transition:color 0.25s;}
+.role-tab.volunteer.active .tab-desc{color:rgba(26,107,60,0.6);}
+.role-tab.organization.active .tab-desc{color:rgba(26,58,107,0.6);}
+.role-tab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:transparent;transition:background 0.25s;}
+.role-tab.volunteer.active::after{background:var(--green);}
+.role-tab.organization.active::after{background:var(--blue);}
+
+/* FORM AREA */
+.form-area{padding:32px 36px 36px;}
+.form-section{display:none;}
+.form-section.active{display:block;animation:fadeUp 0.3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.panel-head{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:20px;border-bottom:1.5px solid #f0f0f0;}
+.panel-head-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.volunteer-panel .panel-head-icon{background:var(--green-light);}
+.organization-panel .panel-head-icon{background:var(--blue-light);}
+.panel-head h2{font-family:'Fraunces',serif;font-size:18px;margin-bottom:2px;}
+.volunteer-panel .panel-head h2{color:var(--green);}
+.organization-panel .panel-head h2{color:var(--blue);}
+.panel-head p{font-size:12px;color:var(--mid);}
+
+.mode-toggle{display:flex;background:#f5f5f3;border-radius:7px;padding:3px;margin-bottom:22px;width:fit-content;}
+.mode-btn{
+  padding:7px 20px;border:none;background:transparent;border-radius:5px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;color:var(--mid);transition:all 0.2s;
+}
+.mode-btn.active{background:white;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.volunteer-panel .mode-btn.active{color:var(--green);}
+.organization-panel .mode-btn.active{color:var(--blue);}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:2px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--mid);}
+input,select,textarea{
+  padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:13.5px;color:#111;
+  background:#fafafa;transition:all 0.2s;outline:none;
+}
+input:focus,select:focus,textarea:focus{background:white;}
+.volunteer-panel input:focus,.volunteer-panel select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(26,107,60,0.07);}
+.organization-panel input:focus,.organization-panel select:focus,.organization-panel textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,58,107,0.07);}
+
+.submit-btn{
+  width:100%;padding:13px;border:none;border-radius:9px;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;margin-top:18px;letter-spacing:0.2px;
+  transition:all 0.2s;
+}
+.submit-btn:hover{transform:translateY(-1px);}
+.submit-btn:active{transform:scale(0.99);}
+.volunteer-panel .submit-btn{background:var(--green);color:white;}
+.volunteer-panel .submit-btn:hover{background:#145c33;box-shadow:0 4px 16px rgba(26,107,60,0.25);}
+.organization-panel .submit-btn{background:var(--blue);color:white;}
+.organization-panel .submit-btn:hover{background:#15306b;box-shadow:0 4px 16px rgba(26,58,107,0.25);}
+
+.msg{margin-top:12px;padding:9px 12px;border-radius:7px;font-size:13px;display:none;}
+.msg.error{background:#fff0f0;color:#c0392b;border:1px solid #f5c6c6;display:block;}
+.msg.success{background:#f0fff4;color:#1a6b3c;border:1px solid #b7e4c7;display:block;}
+
+.badge-strip{
+  display:flex;gap:6px;flex-wrap:wrap;
+  margin-top:20px;padding-top:16px;
+  border-top:1px solid #f0f0f0;
+}
+.badge{
+  display:flex;align-items:center;gap:4px;
+  font-size:10px;color:var(--mid);
+  background:#f5f5f3;padding:4px 9px;border-radius:20px;
+}
+
+/* RIGHT PANEL */
+.right-panel{padding:40px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;}
+.org-info{text-align:right;}
+.org-info h3{font-family:'Fraunces',serif;font-size:28px;color:white;line-height:1.2;letter-spacing:-0.5px;margin-bottom:12px;}
+.org-info p{font-size:14px;color:rgba(255,255,255,0.4);line-height:1.7;margin-bottom:32px;max-width:280px;margin-left:auto;}
+.org-features{display:flex;flex-direction:column;gap:10px;align-items:flex-end;}
+.org-feat{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.05);padding:10px 14px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.07);
+}
+.org-feat-icon{font-size:18px;}
+.org-feat-text{font-size:12px;color:rgba(255,255,255,0.55);}
+
+@media(max-width:1100px){
+  .page-wrap{grid-template-columns:1fr;max-width:520px;margin:0 auto;}
+  .left-panel,.right-panel{display:none;}
+}
+@media(max-width:560px){
+  .form-area{padding:24px 20px 28px;}
+  .form-grid{grid-template-columns:1fr;}
+  nav{padding:14px 20px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon">🌿</div>
+    <span class="logo-name">Volunteer<span>Connect</span></span>
+  </a>
+  <a href="index.html" class="back-link">← Back to Home</a>
+</nav>
+
+<div class="page-wrap">
+  <!-- LEFT -->
+  <div class="left-panel">
+    <h1>Where skills meet<br/><span class="accent-green">purpose</span> &<br/><span class="accent-blue">impact</span></h1>
+    <p>Join thousands of volunteers and organizations building a better world — powered by smart skill matching.</p>
+    <div class="trust-items">
+      <div class="trust-item"><div class="trust-dot"></div><div class="trust-text">Skill-based opportunity matching</div></div>
+      <div class="trust-item"><div class="trust-dot"></div><div class="trust-text">Track your volunteer hours & history</div></div>
+      <div class="trust-item"><div class="trust-dot"></div><div class="trust-text">Real-time application status updates</div></div>
+      <div class="trust-item"><div class="trust-dot" style="background:var(--blue-mid)"></div><div class="trust-text">Organizations manage full pipeline</div></div>
+    </div>
+  </div>
+
+  <!-- CARD -->
+  <div class="login-card">
+    <div class="role-tabs">
+      <button class="role-tab volunteer active" onclick="switchRole('volunteer')">
+        <div class="role-tab-inner">
+          <div class="tab-icon">🙋</div>
+          <div class="tab-title">Volunteer</div>
+          <div class="tab-desc">Find & apply to opportunities</div>
+        </div>
+      </button>
+      <button class="role-tab organization" onclick="switchRole('organization')">
+        <div class="role-tab-inner">
+          <div class="tab-icon">🏢</div>
+          <div class="tab-title">Organization</div>
+          <div class="tab-desc">Post & manage programs</div>
+        </div>
+      </button>
+    </div>
+
+    <div class="form-area">
+      <!-- VOLUNTEER -->
+      <div class="form-section volunteer-panel active" id="volunteer-section">
+        <div class="panel-head">
+          <div class="panel-head-icon">🌱</div>
+          <div>
+            <h2>Volunteer Portal</h2>
+            <p>Discover opportunities matching your skills</p>
+          </div>
+        </div>
+        <div class="mode-toggle">
+          <button class="mode-btn active" onclick="setMode('volunteer','login',this)">Sign In</button>
+          <button class="mode-btn" onclick="setMode('volunteer','register',this)">Create Account</button>
+        </div>
+
+        <div id="vol-login-form">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="vol-email" placeholder="your@email.com"/>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="vol-password" placeholder="••••••••"/>
+          </div>
+          <button class="submit-btn" onclick="loginVolunteer()">Sign In as Volunteer →</button>
+          <div class="msg" id="vol-login-msg"></div>
+        </div>
+
+        <div id="vol-register-form" style="display:none">
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name</label><input type="text" id="vol-reg-name" placeholder="Anjali Sharma"/></div>
+            <div class="form-group"><label>City</label><input type="text" id="vol-reg-city" placeholder="Chennai"/></div>
+            <div class="form-group"><label>Email</label><input type="email" id="vol-reg-email" placeholder="your@email.com"/></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="vol-reg-phone" placeholder="9876543210"/></div>
+            <div class="form-group"><label>Experience Level</label>
+              <select id="vol-reg-exp">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Expert">Expert</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Preferred Mode</label>
+              <select id="vol-reg-mode">
+                <option value="Online">Online</option>
+                <option value="Offline">Offline</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Weekly Hours</label><input type="number" id="vol-reg-hours" placeholder="10" min="1" max="40"/></div>
+            <div class="form-group"><label>Password</label><input type="password" id="vol-reg-pass" placeholder="Create password"/></div>
+          </div>
+          <button class="submit-btn" onclick="registerVolunteer()">Create Account →</button>
+          <div class="msg" id="vol-reg-msg"></div>
+        </div>
+
+        <div class="badge-strip">
+          <span class="badge">✅ Free to join</span>
+          <span class="badge">🎯 Skill matching</span>
+          <span class="badge">📊 Track impact</span>
+        </div>
+      </div>
+
+      <!-- ORGANIZATION -->
+      <div class="form-section organization-panel" id="organization-section">
+        <div class="panel-head">
+          <div class="panel-head-icon">🌐</div>
+          <div>
+            <h2>Organization Portal</h2>
+            <p>Post opportunities & manage your team</p>
+          </div>
+        </div>
+        <div class="mode-toggle">
+          <button class="mode-btn active" onclick="setMode('organization','login',this)">Sign In</button>
+          <button class="mode-btn" onclick="setMode('organization','register',this)">Register NGO</button>
+        </div>
+
+        <div id="org-login-form">
+          <div class="form-group">
+            <label>Organization Email</label>
+            <input type="email" id="org-email" placeholder="contact@ngo.org"/>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="org-password" placeholder="••••••••"/>
+          </div>
+          <button class="submit-btn" onclick="loginOrganization()">Sign In as Organization →</button>
+          <div class="msg" id="org-login-msg"></div>
+        </div>
+
+        <div id="org-register-form" style="display:none">
+          <div class="form-grid">
+            <div class="form-group full"><label>Organization Name</label><input type="text" id="org-reg-name" placeholder="Green Earth Foundation"/></div>
+            <div class="form-group"><label>Official Email</label><input type="email" id="org-reg-email" placeholder="contact@org.com"/></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="org-reg-phone" placeholder="9123456789"/></div>
+            <div class="form-group full"><label>Address</label><input type="text" id="org-reg-address" placeholder="Anna Nagar, Chennai"/></div>
+            <div class="form-group full"><label>About Your Organization</label><textarea id="org-reg-desc" rows="2" placeholder="Briefly describe your mission…"></textarea></div>
+            <div class="form-group"><label>Password</label><input type="password" id="org-reg-pass" placeholder="Create password"/></div>
+            <div class="form-group"><label>Confirm Password</label><input type="password" id="org-reg-pass2" placeholder="Repeat password"/></div>
+          </div>
+          <button class="submit-btn" onclick="registerOrganization()">Register Organization →</button>
+          <div class="msg" id="org-reg-msg"></div>
+        </div>
+
+        <div class="badge-strip">
+          <span class="badge">📋 Manage pipeline</span>
+          <span class="badge">🔍 Find volunteers</span>
+          <span class="badge">📈 Track stats</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="org-info">
+      <h3>For organizations<br/>that mean business.</h3>
+      <p>Post opportunities, review applicants, and build a committed volunteer base — all from one dashboard.</p>
+      <div class="org-features">
+        <div class="org-feat"><span class="org-feat-icon">📤</span><span class="org-feat-text">Post opportunities in minutes</span></div>
+        <div class="org-feat"><span class="org-feat-icon">✅</span><span class="org-feat-text">Accept or reject applications</span></div>
+        <div class="org-feat"><span class="org-feat-icon">⭐</span><span class="org-feat-text">View volunteer ratings & feedback</span></div>
+        <div class="org-feat"><span class="org-feat-icon">📊</span><span class="org-feat-text">Real-time stats & analytics</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+//const API='http://localhost:5000/api';
+//const API = "http://127.0.0.1:5000/api";
+const API = "https://volunteer-system-sjz2.onrender.com/api";
+  
+function switchRole(role){
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.role-tab.${role}`).classList.add('active');
+  document.getElementById(`${role}-section`).classList.add('active');
+}
+
+function setMode(role,mode,btn){
+  const prefix=role==='volunteer'?'vol':'org';
+  document.querySelectorAll(`#${role}-section .mode-btn`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`${prefix}-login-form`).style.display=mode==='login'?'block':'none';
+  document.getElementById(`${prefix}-register-form`).style.display=mode==='register'?'block':'none';
+}
+
+function showMsg(id,text,type){
+  const el=document.getElementById(id);
+  el.textContent=text;el.className=`msg ${type}`;
+}
+
+async function loginVolunteer(){
+  const email=document.getElementById('vol-email').value;
+  const password=document.getElementById('vol-password').value;
+  if(!email||!password)return showMsg('vol-login-msg','Please fill in all fields.','error');
+  try{
+    const res=await fetch(`${API}/login/volunteer`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      credentials:'include',body:JSON.stringify({email,password})
+    });
+    const data=await res.json();
+    if(data.success){
+      localStorage.setItem('user',JSON.stringify(data.user));
+      localStorage.setItem('role','volunteer');
+      showMsg('vol-login-msg','Login successful! Redirecting…','success');
+      setTimeout(()=>window.location.href='volunteer_dashboard.html',900);
+    }else{showMsg('vol-login-msg',data.message||'Invalid credentials.','error');}
+  }catch{showMsg('vol-login-msg','Server error. Is the Flask backend running?','error');}
+}
+
+async function loginOrganization(){
+  const email=document.getElementById('org-email').value;
+  const password=document.getElementById('org-password').value;
+  if(!email||!password)return showMsg('org-login-msg','Please fill in all fields.','error');
+  try{
+    const res=await fetch(`${API}/login/organization`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      credentials:'include',body:JSON.stringify({email,password})
+    });
+    const data=await res.json();
+    if(data.success){
+      localStorage.setItem('user',JSON.stringify(data.user));
+      localStorage.setItem('role','organization');
+      showMsg('org-login-msg','Login successful! Redirecting…','success');
+      setTimeout(()=>window.location.href='org_dashboard.html',900);
+    }else{showMsg('org-login-msg',data.message||'Invalid credentials.','error');}
+  }catch{showMsg('org-login-msg','Server error. Is the Flask backend running?','error');}
+}
+
+async function registerVolunteer(){
+  const payload={
+    name:document.getElementById('vol-reg-name').value,
+    email:document.getElementById('vol-reg-email').value,
+    phone:document.getElementById('vol-reg-phone').value,
+    city:document.getElementById('vol-reg-city').value,
+    password:document.getElementById('vol-reg-pass').value,
+    experience_level:document.getElementById('vol-reg-exp').value,
+    preferred_mode:document.getElementById('vol-reg-mode').value,
+    availability_hours:parseInt(document.getElementById('vol-reg-hours').value)||5
+  };
+  if(!payload.name||!payload.email||!payload.password)
+    return showMsg('vol-reg-msg','Please fill all required fields.','error');
+  try{
+    const res=await fetch(`${API}/register/volunteer`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    const data=await res.json();
+    if(data.success){
+      showMsg('vol-reg-msg','Account created! Please sign in.','success');
+      setTimeout(()=>setMode('volunteer','login',document.querySelector('#volunteer-section .mode-btn')),1500);
+    }else{showMsg('vol-reg-msg',data.message||'Registration failed.','error');}
+  }catch{showMsg('vol-reg-msg','Server error.','error');}
+}
+
+async function registerOrganization(){
+  const pass=document.getElementById('org-reg-pass').value;
+  const pass2=document.getElementById('org-reg-pass2').value;
+  if(pass!==pass2)return showMsg('org-reg-msg','Passwords do not match.','error');
+  const payload={
+    org_name:document.getElementById('org-reg-name').value,
+    email:document.getElementById('org-reg-email').value,
+    phone:document.getElementById('org-reg-phone').value,
+    address:document.getElementById('org-reg-address').value,
+    description:document.getElementById('org-reg-desc').value,
+    password:pass
+  };
+  if(!payload.org_name||!payload.email||!payload.password)
+    return showMsg('org-reg-msg','Please fill all required fields.','error');
+  try{
+    const res=await fetch(`${API}/register/organization`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    const data=await res.json();
+    if(data.success){
+      showMsg('org-reg-msg','Organization registered! Please sign in.','success');
+      setTimeout(()=>setMode('organization','login',document.querySelector('#organization-section .mode-btn')),1500);
+    }else{showMsg('org-reg-msg',data.message||'Registration failed.','error');}
+  }catch{showMsg('org-reg-msg','Server error.','error');}
+}
+</script>
+</body>
+</html>
