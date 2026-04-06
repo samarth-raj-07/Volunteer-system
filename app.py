@@ -414,8 +414,8 @@ def get_skills():
     cursor.close(); db.close()
     return jsonify(skills)
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
 
 # from flask import Flask, request, jsonify, session
 # from flask_cors import CORS
